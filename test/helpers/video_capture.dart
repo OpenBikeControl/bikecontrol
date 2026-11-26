@@ -133,6 +133,22 @@ class VideoRecorder {
   final GlobalKey boundary;
   final capture = VideoCapture();
 
+  /// Frames to film after an action while the screen has something on it
+  /// that never rests (the gear step's Virtual Shifting stage), instead of
+  /// waiting for a settled frame that never comes. Null: wait for one.
+  int? liveFrames;
+
+  /// Waits for the result of an action: [thenFrames] exactly, else
+  /// [liveFrames] on a screen that never rests, else until it has settled.
+  Future<int> _after(int? thenFrames) async {
+    final fixed = thenFrames ?? liveFrames;
+    if (fixed != null) {
+      await frames(fixed);
+      return fixed;
+    }
+    return untilStill();
+  }
+
   /// Frame n is shown at n/30 s. Deriving each pump from the absolute frame
   /// time keeps the sequence exactly 30 fps with no rounding drift.
   static int _timeUs(int frame) => (frame * Duration.microsecondsPerSecond / videoFps).round();
@@ -254,12 +270,7 @@ class VideoRecorder {
     _record(pos, label, 'tap');
     await frames(3);
     await gesture.up();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
+    capture.transitionFrames[label] = await _after(thenFrames);
   }
 
   /// A finger press at [pos] (logical px) rather than on a widget — a tap on
@@ -269,12 +280,7 @@ class VideoRecorder {
     _record(pos, label, 'tap');
     await frames(3);
     await gesture.up();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
+    capture.transitionFrames[label] = await _after(thenFrames);
   }
 
   /// A finger dragged from [from] to [to] over [overFrames], then released
@@ -293,12 +299,7 @@ class VideoRecorder {
       ..endX = end.dx * videoPixelRatio
       ..endY = end.dy * videoPixelRatio;
     await gesture.up();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
+    capture.transitionFrames[label] = await _after(thenFrames);
   }
 
   /// Types [text] into the focused field, one character a few frames apart,
@@ -315,7 +316,7 @@ class VideoRecorder {
       ));
       await frames(framesPerChar);
     }
-    capture.transitionFrames[label] = await untilStill();
+    capture.transitionFrames[label] = await _after(null);
   }
 
   /// Something the app hears from outside, not a touch — [happen] makes it so
@@ -328,12 +329,7 @@ class VideoRecorder {
     final happening = happen();
     if (happening is Future<void>) await happening;
     _record(pos, label, 'event');
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
+    capture.transitionFrames[label] = await _after(thenFrames);
   }
 
   /// A button on the controller pressed ([press]) and, [holdFrames] later,
@@ -355,12 +351,7 @@ class VideoRecorder {
     _record(pos, label, 'hardware').anchor = anchor;
     await frames(holdFrames);
     if (release != null) await release();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
+    capture.transitionFrames[label] = await _after(thenFrames);
   }
 
   /// Presses [mask] on a controller speaking the Ride protocol (the Ride, the
@@ -582,7 +573,9 @@ void writeScene(
 void expectWellFormed(
   VideoCapture capture, {
   required Set<String> unsettledTaps,
+  Set<String> mayBeUnsettledTaps = const {},
   bool settledCuts = true,
+  Set<String> unsettledChapters = const {},
   Size logicalSize = videoLogicalSize,
 }) {
   final (width, height) = pngSize(capture.frames.first);
@@ -595,14 +588,16 @@ void expectWellFormed(
     expect(t.y, inInclusiveRange(0, height), reason: t.label);
     expect(t.frame, inExclusiveRange(0, capture.frames.length), reason: t.label);
     // A settled hold precedes every tap, except into a screen that never rests.
-    expect(t.settledBefore, !unsettledTaps.contains(t.label), reason: 'hold before "${t.label}"');
+    if (!mayBeUnsettledTaps.contains(t.label)) {
+      expect(t.settledBefore, !unsettledTaps.contains(t.label), reason: 'hold before "${t.label}"');
+    }
   }
   // Every cut between chapters is on a settled frame (a time cut excepted).
   final chapters = capture.chapters;
   for (var i = 1; i < chapters.length; i++) {
     final b = chapters[i].start;
     expect(chapters[i - 1].end, b);
-    if (settledCuts && !capture.cutChapters.contains(chapters[i].name)) {
+    if (settledCuts && !capture.cutChapters.contains(chapters[i].name) && !unsettledChapters.contains(chapters[i].name)) {
       expect(bytesEqual(capture.frames[b], capture.frames[b - 1]), isTrue,
           reason: 'boundary into "${chapters[i].name}" (frame $b) must be settled');
     }

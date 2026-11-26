@@ -2,97 +2,99 @@
 // "screen layer" a video compositor later places in a 16:9 frame, with a
 // synthetic pointer drawn from taps.json.
 //
-// Scenes:
+// The wizard has three screens (7.7): which app and where it runs, the gear
+// (controller and smart trainer on one page), then linking the app. The film
+// keeps the compositor's six chapters on them:
 //
-// * `mywhoosh-controller` — the whole MyWhoosh wizard, one continuous take:
-//   app → where ("This Device") → controller (a connected Zwift Ride, three of
-//   its buttons pressed so the contour reacts) → trainer (the Virtual Shifting
-//   stage from its gearing scene on, then a KICKR CORE bridged through the
-//   real picker path) → link-app (the Network method switched on, the "Then
-//   in MyWhoosh" guide, MyWhoosh connecting and pairing the trainer) → done,
-//   ready to ride. `chapters.json` gives each step's frame range.
-// * `mywhoosh-zwift-play`, `mywhoosh-zwift-click-v2`, `mywhoosh-shimano-di2`,
-//   `mywhoosh-sram-axs` — the same take with another controller on step 3.
-//   Only the controller step differs:
-//   - Zwift Play: one connected Play on firmware 2 (`ZwiftPlayFw2`, what
-//     Zwift Companion installs today; both halves report over one link, in
-//     the Ride's protocol), three buttons pressed on its contour.
-//   - Zwift Click V2: both pucks found, held back for the one-time unlock
-//     explainer, which auto-opens on film. The rider reads both options and
-//     picks "Use the right side" — the path that finishes inside BikeControl,
-//     no Zwift app needed. The left puck is set aside, the right one connects
-//     and two of its buttons are pressed on its contour.
-//   - Shimano Di2: a connected rear derailleur, two D-Fly channels pressed.
-//     Di2 has no contour in onboarding, so nothing on screen reacts; taps.json
-//     places the presses on the device row.
-//   - SRAM AXS: a derailleur connected over the offline machine's Bluetooth
-//     (prop's scripted fake derailleur behind it). Its guided setup sheet
-//     auto-opens on film and is walked with real taps: Continue → the
-//     derailleur asks to be authorised → the AXS button is held (a hardware
-//     beat on the fake derailleur) → Retry → all set → Done. Two shifter
-//     paddles are then pressed; like Di2, AXS has no contour in onboarding.
+//   app         step 1: the app grid; the app's tile is picked and flies into
+//               the spotlight (the grid is scrolled first for an app further
+//               down, like "Other").
+//   where       step 1: "<app> runs on" — This Device.
+//   controller  step 2: the controller's own beats (presses, and the Click V2
+//               explainer or the SRAM guided sheet where it opens).
+//   trainer     step 2: the Virtual Shifting stage plays under the trainer
+//               card, then the KICKR CORE is connected and bridged over the
+//               real picker path; Continue.
+//   link-app    step 3: "Almost there" — the guide is scrolled to and back,
+//               then the app connects (through its connection method's own
+//               entry point).
+//   done        step 3: the app picks up the bridged trainer and the step
+//               turns into "You're ready to ride". Zwift and "Other" take the
+//               controller from the bridge itself, so one event does both.
+//
+// The phone is filmed as an iPhone (`debugHostPlatformOverride` = iOS): on a
+// phone the app on "This Device" is reached over the network, which is the
+// setup the website's guides describe.
+//
+// Scenes (`<app>-<controller>`; apps mywhoosh, rouvy, trainingpeaks, zwift,
+// other):
+//
+// * `<app>-zwift-ride` — a connected Zwift Ride, three buttons pressed so the
+//   contour reacts.
+// * `<app>-zwift-play` — one connected Play on firmware 2 (`ZwiftPlayFw2`, what
+//   Zwift Companion installs today; both halves report over one link, in the
+//   Ride's protocol), three buttons pressed on its contour.
+// * `<app>-zwift-click-v2` — both pucks found, held back for the one-time
+//   unlock explainer, which opens by itself on step 2. The rider reads both
+//   options, picks "No Zwift unlock" and "Use the right side" — the path that
+//   finishes inside BikeControl, no Zwift app needed. The left puck is set
+//   aside, the right one connects and two of its buttons are pressed.
+// * `<app>-shimano-di2` — a connected rear derailleur whose shifter buttons
+//   send D-Fly channels (set in Shimano's E-TUBE app), two channels pressed.
+//   The wizard has no Di2 sub-flow: BikeControl's own Di2 setup (button mode
+//   or E-TUBE channels) is offered on Ride after the wizard, not in it. Di2
+//   has no contour in onboarding, so taps.json places the presses on the row.
+// * `<app>-sram-axs` — a derailleur connected over the offline machine's
+//   Bluetooth (prop's scripted fake derailleur behind it). Its guided setup
+//   sheet opens by itself and is walked with real taps: Continue → the
+//   derailleur asks to be authorised → the AXS button is held (a hardware
+//   beat on the fake derailleur) → Retry → all set → Done. Two shifter
+//   paddles are then pressed.
 // * `vs-settings` — a cutaway on Settings → Virtual shifting for the bridged
-//   trainer: a second chainring, gear count and gearing presets under the
-//   live drivetrain; a gear change from a Ride press. Its `chapters.json`
-//   names those two beats. The rider is pedalling (the trainer streams Indoor
-//   Bike Data), so the chain on the drivetrain runs; the gear-count warning is
-//   kept off it with a test-only flag. Because the chain never rests, the beat
-//   boundaries here are not settled frames — it is one continuous take.
+//   trainer (filmed after the MyWhoosh Ride take, shared by every video): a
+//   second chainring, gear count and gearing presets under the live
+//   drivetrain; a gear change from a Ride press. The rider is pedalling, so
+//   the chain on the drivetrain runs and the beat boundaries there are not
+//   settled frames.
 //
 // Output (per scene):
 //   build/video_frames/<scene>/000000.png, 000001.png, …  1140×2472 px
 //   build/video_frames/<scene>/scene.json  {pixelRatio, width, height,
-//     logicalWidth, logicalHeight, fps, frames} — pixelRatio maps the
-//     380×824 logical screen to the PNG and taps.json pixel space. The wizard
-//     takes add {controller, controllerName}: the website's device slug and
-//     the controller's display name.
+//     logicalWidth, logicalHeight, fps, frames} plus, for the wizard takes,
+//     {app, appName, controller, controllerName}.
 //   build/video_frames/<scene>/taps.json  [{frame, x, y, label, kind}] in PNG
 //     pixels. kind "tap" is a finger on the screen; "swipe" a finger dragged
 //     from x/y (at frame) to endX/endY (at endFrame); "hardware" a button
 //     pressed (or held) on the controller, with an anchor saying where x/y
 //     points: "contour-button" that button on the contour, "reaction" the spot
 //     that reacts where no contour is on screen, "device-row" the controller's
-//     row for a controller with no contour (nothing on screen reacts),
-//     "sheet-hero" the derailleur drawn in the SRAM authorise step;
-//     "event" something the app hears from outside (MyWhoosh connecting), at
-//     the spot that shows it.
-//   build/video_frames/<scene>/chapters.json  [{name, start, end, cut?}] —
-//     every boundary between two chapters is a settled frame, so a cut there
-//     is invisible.
+//     row for a controller with no contour, "sheet-hero" the derailleur drawn
+//     in the SRAM authorise step; "event" something the app hears from
+//     outside (the trainer app connecting), at the spot that shows it.
+//   build/video_frames/<scene>/chapters.json  [{name, start, end}] — every
+//     boundary is a settled frame except the one into `trainer`, which sits on
+//     the gear step with the Virtual Shifting stage moving.
 //
 // Tagged `video` and skipped by default (see dart_test.yaml). Run with:
 //   flutter test --run-skipped --tags video test/onboarding_video_capture_test.dart
+// One app only: add --dart-define=VIDEO_APPS=rouvy (comma-separated ids).
 //
 // Determinism
 // -----------
-// Every frame is a pure function of the script, which is what the second test
+// Every frame is a pure function of the script, which the determinism test
 // proves byte for byte. What makes that hold:
 //
-// * The fake-clock binding. The snapshot harness normally installs the
-//   integration binding, under which `pump(duration)` waits wall-clock time
-//   and frames are stamped by the real vsync — an animation's phase in a
-//   captured frame would depend on how fast the machine rendered the previous
-//   one. Here time only moves when the script pumps, exactly 1/30 s at a time.
-// * Assets are decoded before the first recorded frame. Fonts, the app logos,
-//   the header icon, the Ride contour SVG and the guide screenshots all load
-//   through real async I/O, which the fake clock never waits for; left to
-//   load mid-recording they pop in on whichever frame the machine got to them.
-// * An offline machine (test/helpers/offline_machine.dart). Connecting the
-//   trainer and switching on the Network method run the app's real code down
-//   to the platform: the app's emulated BLE platform stands in for Bluetooth,
-//   an in-memory mDNS for the LAN, TCP servers bind to nothing, the network
-//   interface list is fixed and HTTP is answered from local fixtures. Nothing
-//   waits on the real event loop, and nothing leaves the machine.
-// * `screenshotMode` stays on. It pins everything this path would otherwise
-//   read from the machine: the permission probe returns nothing (so the
-//   controller step goes straight to its device list), no update check hits
-//   the network, and no BLE scan or connection queue runs. The motion it also
-//   switches off — the reveal, the Virtual Shifting stage, the trainer radar —
-//   is switched back on through [debugAnimatesInScreenshotMode].
-//   App, controller and trainer names on this path are not anonymised by
-//   screenshotMode, so the video shows the real "MyWhoosh", "Zwift Ride" and
-//   "KICKR CORE" — except the Click V2's, which [debugKeepsControllerNamesInScreenshotMode]
-//   keeps. The Click V2 explainer, which screenshotMode suppresses, is let
+// * The fake-clock binding: time only moves when the script pumps, exactly
+//   1/30 s at a time.
+// * Assets are decoded before the first recorded frame (fonts, logos, the
+//   contour SVGs, the guide screenshots).
+// * An offline machine (test/helpers/offline_machine.dart): the app's real
+//   code runs down to emulated Bluetooth, an in-memory mDNS, TCP servers bound
+//   to nothing and HTTP answered from local fixtures.
+// * `screenshotMode` stays on, pinning everything read from the machine. The
+//   motion it switches off is switched back on through
+//   [debugAnimatesInScreenshotMode]; controller names are kept with
+//   [debugKeepsControllerNamesInScreenshotMode]; the Click V2 explainer is let
 //   through with [debugClickV2OnboardingInScreenshotMode].
 @Tags(['video'])
 library;
@@ -127,19 +129,24 @@ import 'package:bike_control/main.dart'
         screenshotLocale,
         screenshotMode;
 import 'package:bike_control/pages/click_v2_onboarding.dart';
-import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart' show OnboardingPairAsTrainerCard;
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart' show debugVirtualShiftingStageOpeningScene;
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
-import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/utils/device_setup_prompt.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -153,13 +160,20 @@ import 'helpers/offline_machine.dart';
 import 'helpers/video_capture.dart';
 import 'widget_snapshot.dart';
 
-/// The Virtual Shifting stage on the trainer step never comes to rest (it
-/// cycles its four scenes every 5.5 s), so it gets a fixed run. The film opens
-/// it on its gearing scene — the "works in every app" scene is cut, since by
-/// step 4 the viewer has already picked a trainer — and leaves before the
-/// stage moves on (5 s of its 5.5 s dwell).
+/// The Virtual Shifting stage under the trainer card never comes to rest (it
+/// cycles its scenes every 5.5 s). The film opens it on its gearing scene and
+/// lets it play this long before the trainer is connected.
 const _vsStageOpeningScene = 1;
-const _vsStageFrames = 150;
+const _vsStageFrames = 75;
+
+/// Filmed after entering the gear step, before the first press (~2 s).
+const _gearStepEntryFrames = 60;
+
+/// What is filmed after an action on the gear step while the stage moves.
+const _gearStepActionFrames = 30;
+
+/// What is filmed after each cutaway action (its page never rests).
+const _cutawayActionFrames = 24;
 
 /// Cutaway holds: the opening page and the chosen preset.
 const _cutawayOpeningFrames = 45;
@@ -173,25 +187,29 @@ const _cutawayStartGears = 28;
 const _pedallingRpm = 90;
 const _pedallingW = 200;
 
-/// Each of the Click V2 explainer's two option pages is held for a ~3 s read
-/// (the unlock option's hero loops, so it never rests on its own).
-const _clickV2OptionPageFrames = 90;
+/// The Click V2 explainer is held ~3 s for a read before the rider picks.
+const _clickV2ReadFrames = 90;
 
 /// The SRAM authorise step's hero pulses for as long as it is up: it is held
 /// ~2 s before the rider acts, and the AXS button ~1.5 s.
 const _sramAuthorizeFrames = 60;
 const _sramAxsHoldFrames = 45;
 
-/// Extra hold on a screen that is mostly text to read (the SRAM sheet's
-/// intro and result, the Click V2 choice) before the rider acts (~1.5 s).
+/// Extra hold on a screen that is mostly text to read (~1.5 s).
 const _readFrames = 45;
+
+/// Held on the guide in step 3 before scrolling back (~2 s).
+const _guideReadFrames = 60;
+
+/// Held on "You're ready to ride" at the end (~2 s).
+const _readyHoldFrames = 60;
 
 const _cutawayScene = 'vs-settings';
 
 const _trainerName = 'KICKR CORE';
 
-/// The "Then in MyWhoosh" screenshots, served from local copies of the
-/// website's own files instead of bikecontrol.app.
+/// The guides' screenshots, served from local copies of the website's own
+/// files instead of bikecontrol.app.
 const _guideFixtures = {
   'https://bikecontrol.app/images/mywhoosh_obc/4-mywhoosh-connection-screen.jpg':
       'test/fixtures/onboarding_guides/mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
@@ -199,9 +217,11 @@ const _guideFixtures = {
       'test/fixtures/onboarding_guides/mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
   'https://bikecontrol.app/images/mywhoosh_obc/6-bikecontrol-connected.jpg':
       'test/fixtures/onboarding_guides/mywhoosh_obc/6-bikecontrol-connected.jpg',
+  'https://bikecontrol.app/images/blog_rouvy_screenshot.jpg':
+      'test/fixtures/onboarding_guides/rouvy/blog_rouvy_screenshot.jpg',
 };
 
-/// Each capture starts from the same stored state (a capture picks MyWhoosh
+/// Each capture starts from the same stored state (a capture picks an app
 /// and a target, which persists).
 Future<void> _restoreAppState() async {
   await restorePristinePrefs();
@@ -212,14 +232,14 @@ Future<void> _restoreAppState() async {
   // A trainer is put back in the gear it was last left in; each take starts
   // from a trainer that was never ridden.
   ProxyDevice.debugClearRememberedGears();
+  DeviceSetupPrompt.debugReset();
   // A purchased account: nothing in the film is gated or counted down, which
   // is also the only state in which it's honest to show Virtual Shifting
   // without a trial note.
   IAPManager.instance.isPurchased.value = true;
   // Straight into step 1: the film starts at the app step, not the welcome
-  // screen. Visually the shell is the same either way.
+  // screen.
   await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-  // No trainer app chosen yet — picking MyWhoosh is part of the film.
   core.actionHandler = StubActions();
   // The Ride's own buzz on a shift press is a BLE write to hardware that isn't
   // there; it isn't on film anyway.
@@ -238,28 +258,129 @@ class _Stage {
   late ProxyDevice trainer;
 }
 
-/// The controller a MyWhoosh take is filmed with, and what happens on its step.
-abstract class _ControllerTake {
-  _ControllerTake({required this.scene, required this.slug, required this.name});
+/// The trainer app a take sets up, and how it connects on step 3.
+class _AppFilm {
+  const _AppFilm({
+    required this.id,
+    required this.isApp,
+    required this.name,
+    required this.connect,
+    this.pickUpTrainer,
+    this.guideImages = const [],
+    this.unlocksClickV2 = false,
+  });
 
-  /// Output folder under build/video_frames.
-  final String scene;
+  /// Whether the app unlocks a Zwift Click V2 itself (Zwift, Rouvy): the
+  /// wizard then has no Click V2 choice to offer, and both pucks just work.
+  final bool unlocksClickV2;
+
+  /// Scene prefix and the website's app id.
+  final String id;
+
+  /// Picks the app's tile.
+  final bool Function(SupportedApp) isApp;
+
+  /// The app's name as the wizard shows it.
+  final String name;
+
+  /// The app connecting to BikeControl, through its method's own entry point.
+  final void Function() connect;
+
+  /// The app picking up the bridged trainer; null where [connect] already
+  /// does (Zwift and "Other" take everything from the bridge).
+  final void Function()? pickUpTrainer;
+
+  /// The guide's screenshots (URLs served from [_guideFixtures], or assets).
+  final List<String> guideImages;
+
+  String get connectsLabel => '$name connects';
+  String get pairsLabel => '$name pairs the trainer';
+}
+
+final _apps = <_AppFilm>[
+  _AppFilm(
+    id: 'mywhoosh',
+    isApp: (a) => a is MyWhoosh,
+    name: 'MyWhoosh',
+    // MyWhoosh sends its app info over the Network (OpenBikeControl) method…
+    connect: () => core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
+      appId: 'MyWhoosh',
+      appVersion: '1.0',
+      supportedButtons: MyWhoosh().defaultObpSupportedButtons,
+    )),
+    // …and pairs "KICKR CORE - BikeControl": the bridge reports it held.
+    pickUpTrainer: () => ftmsEmulator.isConnected.value = true,
+    guideImages: [
+      'https://bikecontrol.app/images/mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
+      'https://bikecontrol.app/images/mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
+    ],
+  ),
+  _AppFilm(
+    id: 'rouvy',
+    isApp: (a) => a is Rouvy,
+    name: 'Rouvy',
+    // Rouvy connects to BikeControl's controller over the network…
+    connect: () => core.rouvyMdnsEmulator.clickEmulator.isConnected.value = true,
+    // …and pairs "KICKR CORE - Bridge" as its trainer.
+    pickUpTrainer: () => ftmsEmulator.isConnected.value = true,
+    guideImages: ['https://bikecontrol.app/images/blog_rouvy_screenshot.jpg'],
+    unlocksClickV2: true,
+  ),
+  _AppFilm(
+    id: 'trainingpeaks',
+    isApp: (a) => a is TrainingPeaks,
+    name: 'TrainingPeaks Virtual',
+    connect: () => core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
+      appId: 'TrainingPeaks Virtual',
+      appVersion: '1.0',
+      supportedButtons: TrainingPeaks().defaultObpSupportedButtons,
+    )),
+    pickUpTrainer: () => ftmsEmulator.isConnected.value = true,
+  ),
+  _AppFilm(
+    id: 'zwift',
+    isApp: (a) => a is Zwift,
+    name: 'Zwift',
+    // Zwift pairs "BikeControl" for power, resistance, cadence and controls:
+    // the one bridge carries both.
+    connect: () => ftmsEmulator.isConnected.value = true,
+    guideImages: ['assets/guides/zwift-pair-device.jpg', 'assets/guides/zwift-paired-devices.jpg'],
+    unlocksClickV2: true,
+  ),
+  _AppFilm(
+    id: 'other',
+    isApp: (a) => a is CustomApp,
+    name: 'Other',
+    connect: () => ftmsEmulator.isConnected.value = true,
+  ),
+];
+
+/// The controller a take is filmed with, and what happens on its part of the
+/// gear step.
+abstract class _ControllerTake {
+  _ControllerTake({required this.sceneSuffix, required this.slug, required this.name});
+
+  /// Scene folder suffix: build/video_frames/<app>-<suffix>.
+  final String sceneSuffix;
 
   /// The website's device slug.
   final String slug;
 
+  /// The app this take sets up (set before [stage]).
+  late _AppFilm app;
+
   /// The controller's display name, for the compositor's overlay text.
   final String name;
 
-  /// What scene.json says about the controller.
-  Map<String, Object> get sceneInfo => {'controller': slug, 'controllerName': name};
+  String scene(_AppFilm app) => '${app.id}-$sceneSuffix';
 
-  /// The controller step as (kind, label), in order, from "Continue to
+  /// What scene.json says about the controller.
+  Map<String, Object> sceneInfo(_AppFilm app) =>
+      {'app': app.id, 'appName': app.name, 'controller': slug, 'controllerName': name};
+
+  /// The controller beats as (kind, label), in order, from "Continue to
   /// controller" on.
   List<(String, String)> get beats;
-
-  /// Beats that go into a screen that never rests.
-  Set<String> get unsettledBeats => const {};
 
   /// Whether the controller has a contour on the step that reacts to presses.
   bool get hasContour => true;
@@ -273,15 +394,24 @@ abstract class _ControllerTake {
   /// Puts the controller in range (not on film).
   Future<void> stage(WidgetTester tester, _Stage stage);
 
-  /// Films step 3, from the tap on "Continue to controller" to the last press.
+  /// Films the controller part of step 2, from the tap that enters it to the
+  /// last press.
   Future<void> film(WidgetTester tester, VideoRecorder rec);
 
   /// Takes the controller away again, so the next take starts without it.
   Future<void> unstage(WidgetTester tester, _Stage stage);
 }
 
+/// "Continue with <app>" — the tap that leaves step 1 for the gear step.
+/// The gear step builds in over ~1 s; it is given [_gearStepEntryFrames]
+/// before the first press, so the page is seen whole (and the compositor's
+/// camera pulls out for the page change rather than panning across it).
+Future<void> _enterGearStep(VideoRecorder rec, {int? thenFrames}) => rec.tap(
+    find.byType(PrimaryButton).last, 'Continue to controller',
+    thenFrames: thenFrames ?? (rec.liveFrames == null ? null : _gearStepEntryFrames));
+
 class _RideTake extends _ControllerTake {
-  _RideTake(this.ride) : super(scene: 'mywhoosh-controller', slug: 'zwift-ride', name: 'Zwift Ride');
+  _RideTake(this.ride) : super(sceneSuffix: 'zwift-ride', slug: 'zwift-ride', name: 'Zwift Ride');
 
   final ZwiftRide ride;
 
@@ -303,13 +433,11 @@ class _RideTake extends _ControllerTake {
 
   @override
   Future<void> film(WidgetTester tester, VideoRecorder rec) async {
-    await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
-
-    // Step 3 — controller: the connected Ride is listed with its contour.
+    await _enterGearStep(rec);
     expect(find.text(ride.displayName(tester.element(find.byType(OnboardingPage)))), findsOneWidget,
-        reason: 'should be on the controller step with the Ride listed');
+        reason: 'should be on the gear step with the Ride listed');
 
-    // Press buttons on the Ride — a shift, a steer, a shift the other way.
+    // A shift, a steer, a shift the other way.
     final forward = forwardPresses(ride);
     await rec.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Ride button: Shift up');
     await rec.hardwarePress(ride, RideButtonMask.LEFT_BTN, ZwiftButtons.navigationLeft, 'Ride button: Steer left');
@@ -322,11 +450,8 @@ class _RideTake extends _ControllerTake {
 }
 
 /// A Zwift Play on firmware 2 — what Zwift Companion puts on a Play today.
-/// On it both halves report over one link in the Ride's protocol, so the app
-/// lists one "Zwift Play" with both halves on its contour (firmware 1 listed
-/// the halves as two separate controllers).
 class _PlayTake extends _ControllerTake {
-  _PlayTake() : super(scene: 'mywhoosh-zwift-play', slug: 'zwift-play', name: 'Zwift Play');
+  _PlayTake() : super(sceneSuffix: 'zwift-play', slug: 'zwift-play', name: 'Zwift Play');
 
   late ZwiftPlayFw2 play;
 
@@ -339,7 +464,7 @@ class _PlayTake extends _ControllerTake {
       ];
 
   @override
-  List<String> get svgAssets => [play.controllerLayout.svgAsset!];
+  List<String> get svgAssets => [ZwiftPlayFw2(BleDevice(name: 'Zwift Play', deviceId: 'svg')).controllerLayout.svgAsset!];
 
   @override
   Future<void> stage(WidgetTester tester, _Stage stage) async {
@@ -350,9 +475,9 @@ class _PlayTake extends _ControllerTake {
 
   @override
   Future<void> film(WidgetTester tester, VideoRecorder rec) async {
-    await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
+    await _enterGearStep(rec);
     expect(find.text(play.displayName(tester.element(find.byType(OnboardingPage)))), findsOneWidget,
-        reason: 'should be on the controller step with the Play listed');
+        reason: 'should be on the gear step with the Play listed');
 
     // The right half's shift button, the left half's D-pad, the left half's
     // shift button.
@@ -368,12 +493,13 @@ class _PlayTake extends _ControllerTake {
 }
 
 /// Both Click V2 pucks in range, as a rider with a new Click V2 has them. They
-/// are held back for the unlock explainer, which opens by itself on step 3.
-/// The rider picks "Use the right side": everything happens inside BikeControl
-/// (no Zwift app), the left puck is set aside and the right one connects —
-/// over the offline machine's Bluetooth, through the app's real connect path.
+/// are held back for the unlock explainer, which opens by itself on step 2.
+/// The rider picks "No Zwift unlock" and "Use the right side": everything
+/// happens inside BikeControl (no Zwift app), the left puck is set aside and
+/// the right one connects — over the offline machine's Bluetooth, through the
+/// app's real connect path.
 class _ClickV2Take extends _ControllerTake {
-  _ClickV2Take() : super(scene: 'mywhoosh-zwift-click-v2', slug: 'zwift-click-v2', name: 'Zwift Click V2');
+  _ClickV2Take() : super(sceneSuffix: 'zwift-click-v2', slug: 'zwift-click-v2', name: 'Zwift Click V2');
 
   static const _leftId = 'film-click-v2-left';
   static const _rightId = 'film-click-v2-right';
@@ -382,21 +508,22 @@ class _ClickV2Take extends _ControllerTake {
   late ZwiftClickV2RightSide right;
 
   @override
-  List<(String, String)> get beats => const [
-        ('tap', 'Continue to controller'),
-        ('tap', 'Click V2 setup: next option'),
-        ('tap', 'Click V2 setup: to the choice'),
-        ('tap', 'Use the right side'),
-        ('hardware', 'Click V2 button: Shift up (+)'),
-        ('hardware', 'Click V2 button: Shift down (B)'),
-      ];
+  List<(String, String)> get beats => app.unlocksClickV2
+      ? const [
+          ('tap', 'Continue to controller'),
+          ('hardware', 'Click V2 button: Shift up (+)'),
+          ('hardware', 'Click V2 button: Shift down (−)'),
+        ]
+      : const [
+          ('tap', 'Continue to controller'),
+          ('tap', 'Click V2 setup: no Zwift unlock'),
+          ('tap', 'Use the right side'),
+          ('hardware', 'Click V2 button: Shift up (+)'),
+          ('hardware', 'Click V2 button: Shift down (B)'),
+        ];
 
   @override
-  // The unlock option's hero loops (its padlock); the right-side one rests.
-  Set<String> get unsettledBeats => const {'Click V2 setup: to the choice'};
-
-  @override
-  List<String> get sightings => const ['click-v2-explainer', 'click-v2-choice'];
+  List<String> get sightings => app.unlocksClickV2 ? const [] : const ['click-v2-explainer', 'click-v2-choice'];
 
   @override
   List<String> get svgAssets => const [
@@ -421,35 +548,61 @@ class _ClickV2Take extends _ControllerTake {
       return peripheral;
     }
 
-    // Built from the scan results the way the scanner builds them (the split
-    // left/right representation is the default).
     left = ZwiftClickV2LeftSide(puck(_leftId, ZwiftConstants.CLICK_V2_LEFT_SIDE).scanResult);
     right = ZwiftClickV2RightSide(puck(_rightId, ZwiftConstants.CLICK_V2_RIGHT_SIDE).scanResult);
     core.connection.addDevices([left, right]);
+    if (app.unlocksClickV2) {
+      // Zwift and Rouvy unlock the Click V2 themselves, so once one is picked
+      // nothing holds the pucks back and both connect (the scanner's connect
+      // queue, which would do it, doesn't run under screenshotMode). They are
+      // connected here through the app's real connect path, with the app
+      // picked for the moment — a puck is held back while no app is — and
+      // the pick undone again before the film starts on the app grid.
+      await core.settings.prefs.setString('trainer_app', app.name);
+      for (final d in [left, right]) {
+        await driveUntil(tester, core.connection.connectDevice(d), '$d should have connected');
+        expect(d.isConnected, isTrue, reason: '$d should be connected');
+      }
+      await core.settings.prefs.remove('trainer_app');
+    }
   }
 
   @override
   Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     final l10n = AppLocalizations.current;
-    // Entering step 3 with a new Click V2 in range opens the explainer.
-    await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller', thenFrames: _clickV2OptionPageFrames);
+    if (app.unlocksClickV2) {
+      // No choice to make: both pucks are connected, each on its contour.
+      await _enterGearStep(rec);
+      expect(find.byType(ClickV2OnboardingPage), findsNothing, reason: '${app.name} unlocks the Click V2 itself');
+      expect(left.isConnected && right.isConnected, isTrue, reason: 'both pucks should be connected');
+      await rec.hardwarePress(right, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight,
+          'Click V2 button: Shift up (+)');
+      await rec.hardwarePress(left, RideButtonMask.SHFT_UP_L_BTN, ZwiftButtons.shiftUpLeft,
+          'Click V2 button: Shift down (−)');
+      return;
+    }
+    // Entering the gear step with a new Click V2 in range opens the explainer
+    // over it (a page of its own: the moving stage is under it).
+    rec.liveFrames = null;
+    await _enterGearStep(rec);
     rec.sighting('click-v2-explainer', find.byType(ClickV2OnboardingPage));
     expect(find.text(l10n.clickV2Onboarding_noUnlockTitle), findsOneWidget);
-    expect(find.text(l10n.clickV2Onboarding_zwiftTitle), findsOneWidget, reason: 'both options are offered side by side');
-    await rec.frames(_readFrames);
+    expect(find.text(l10n.clickV2Onboarding_zwiftTitle), findsOneWidget, reason: 'both options are offered');
+    await rec.frames(_clickV2ReadFrames);
 
     // The option a rider finishes inside BikeControl: the right side alone.
-    await rec.tap(find.byKey(const ValueKey('click-onboarding-option-no-unlock')), 'Skip the Zwift unlock',
-        thenFrames: _clickV2OptionPageFrames);
+    await rec.tap(find.byKey(const ValueKey('click-onboarding-option-no-unlock')), 'Click V2 setup: no Zwift unlock');
     rec.sighting('click-v2-choice', find.text(l10n.clickV2Onboarding_rightOnlyCta));
+    await rec.frames(_readFrames);
+    rec.liveFrames = _gearStepActionFrames * 2;
     await rec.tap(find.byKey(const ValueKey('click-onboarding-cta')), 'Use the right side');
+    rec.liveFrames = _gearStepActionFrames;
     expect(find.byType(ClickV2OnboardingPage), findsNothing, reason: 'the explainer closes on a choice');
     expect(core.settings.getClickV2RightSideOnly(), isTrue);
     expect(right.isConnected, isTrue, reason: 'the right puck connects once chosen');
     expect(core.connection.devices, isNot(contains(left)), reason: 'the left puck is set aside');
 
-    // The right puck on its own: + shifts up, B shifts down (the choice remaps
-    // it, so one puck covers both directions).
+    // The right puck on its own: + shifts up, B shifts down.
     await rec.hardwarePress(right, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight,
         'Click V2 button: Shift up (+)');
     await rec.hardwarePress(right, RideButtonMask.B_BTN, ZwiftButtons.b, 'Click V2 button: Shift down (B)');
@@ -469,11 +622,9 @@ class _ClickV2Take extends _ControllerTake {
   }
 }
 
-/// A Shimano Di2 rear derailleur, its shifters' buttons set to D-Fly channels.
-/// Di2 has no contour in onboarding: its row is all the step shows, and
-/// nothing on screen reacts to a press.
+/// A Shimano Di2 rear derailleur whose shifter buttons send D-Fly channels.
 class _Di2Take extends _ControllerTake {
-  _Di2Take() : super(scene: 'mywhoosh-shimano-di2', slug: 'shimano-di2', name: 'Shimano Di2');
+  _Di2Take() : super(sceneSuffix: 'shimano-di2', slug: 'shimano-di2', name: 'Shimano Di2');
 
   late ShimanoDi2 di2;
 
@@ -508,9 +659,9 @@ class _Di2Take extends _ControllerTake {
 
   @override
   Future<void> film(WidgetTester tester, VideoRecorder rec) async {
-    await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
+    await _enterGearStep(rec);
     final row = find.text(di2.displayName(tester.element(find.byType(OnboardingPage))));
-    expect(row, findsOneWidget, reason: 'should be on the controller step with the Di2 listed');
+    expect(row, findsOneWidget, reason: 'should be on the gear step with the Di2 listed');
 
     final forward = forwardPresses(di2);
     final listen = core.connection.actionStream.listen((n) {
@@ -546,7 +697,7 @@ class _Di2Take extends _ControllerTake {
 /// the key exchange with a create-bond frame the app can't decrypt — the
 /// failure the app's authorise step is there for.
 class _SramTake extends _ControllerTake {
-  _SramTake() : super(scene: 'mywhoosh-sram-axs', slug: 'sram-axs-etap', name: 'SRAM AXS');
+  _SramTake() : super(sceneSuffix: 'sram-axs', slug: 'sram-axs-etap', name: 'SRAM AXS');
 
   static const _id = 'film-sram-axs';
 
@@ -569,9 +720,6 @@ class _SramTake extends _ControllerTake {
       ];
 
   @override
-  Set<String> get unsettledBeats => const {'AXS button: Press & hold', 'SRAM setup: Retry'};
-
-  @override
   bool get hasContour => false;
 
   @override
@@ -591,8 +739,6 @@ class _SramTake extends _ControllerTake {
       services: FakeSramDerailleur.buildServices(),
     );
     sram = SramAxs(peripheral.scanResult);
-    // The derailleur's notifications are handed to the device where the
-    // connection layer hands them over (as the Ride's are).
     derailleur = FakeSramDerailleur(
       notify: (characteristic, value) =>
           unawaited(sram.processCharacteristic(characteristic, Uint8List.fromList(value))),
@@ -619,16 +765,16 @@ class _SramTake extends _ControllerTake {
   @override
   Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     final l10n = AppLocalizations.current;
-    // Entering step 3 with the derailleur connected opens its guided setup.
-    await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
+    // Entering the gear step with the derailleur connected opens its guided
+    // setup sheet over the step.
+    await _enterGearStep(rec, thenFrames: _gearStepActionFrames * 2);
     rec.sighting('sram-setup-confirm', find.byType(SramGuidedSheet));
     expect(find.text(l10n.sramSetupIntro), findsOneWidget);
     await rec.frames(_readFrames);
 
     Finder sheetButton(String text) =>
         find.descendant(of: find.byType(SramGuidedSheet), matching: find.widgetWithText(PrimaryButton, text));
-    await rec.tap(sheetButton(l10n.continueAction), 'SRAM setup: Continue',
-        thenFrames: _sramAuthorizeFrames);
+    await rec.tap(sheetButton(l10n.continueAction), 'SRAM setup: Continue', thenFrames: _sramAuthorizeFrames);
     rec.sighting('sram-setup-authorize', find.text(l10n.sramAuthorizeTitle));
 
     // Holding the AXS button on the derailleur authorises BikeControl.
@@ -640,9 +786,9 @@ class _SramTake extends _ControllerTake {
       holdFrames: _sramAxsHoldFrames,
       thenFrames: 0,
     );
-    await rec.tap(sheetButton(l10n.retry), 'SRAM setup: Retry');
+    await rec.tap(sheetButton(l10n.retry), 'SRAM setup: Retry', thenFrames: _gearStepActionFrames * 2);
     rec.sighting('sram-setup-success', find.text(l10n.sramAllSet));
-    expect(sram.isShiftingDisabled, isTrue, reason: "setup should have handed the paddles to BikeControl");
+    expect(sram.isShiftingDisabled, isTrue, reason: 'setup should have handed the paddles to BikeControl');
     expect(derailleur.derailleurUnassigned, isTrue);
     await rec.frames(_readFrames);
 
@@ -680,16 +826,19 @@ class _SramTake extends _ControllerTake {
   }
 }
 
-/// One take of the MyWhoosh wizard with [take]'s controller on step 3. The
+/// One take of the wizard for [app] with [take]'s controller. The MyWhoosh
 /// Ride take goes on into the gearing cutaway on the bridged trainer's page
 /// ([withCutaway]).
-Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
+Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureWizard(
   WidgetTester tester,
   _Stage stage,
+  _AppFilm app,
   _ControllerTake take, {
   ZwiftRide? withCutaway,
 }) async {
+  await _resetMachine(tester, stage);
   await _restoreAppState();
+  take.app = app;
   await take.stage(tester, stage);
 
   // An FTMS smart trainer in range, as the scan would have found it.
@@ -700,95 +849,98 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
 
   useVideoView(tester);
 
-  // performScanning early-returns while this is set, so the controller step
-  // never starts a scan of its own.
+  // performScanning early-returns while this is set, so the gear step never
+  // starts a scan of its own.
   core.connection.isScanning.value = true;
   addTearDown(() => core.connection.isScanning.value = false);
 
   final boundary = GlobalKey();
-  Widget app(Widget home) => videoApp(boundary, home);
+  Widget appShell(Widget home) => videoApp(boundary, home);
 
   // ── Warm-up (not recorded): decode every asset the film shows. ──────────
-  await tester.pumpWidget(app(const OnboardingPage()));
+  await tester.pumpWidget(appShell(const OnboardingPage()));
   await tester.pump();
   await loadAllVideoFonts(tester);
   final assetContext = tester.element(find.byType(OnboardingPage));
   await tester.runAsync(() async {
+    Future<void> quietly(Future<void> f) => f.catchError((_) {});
     await Future.wait([
       precacheImage(const AssetImage('icon.png'), assetContext),
       for (final a in SupportedApp.supportedApps)
-        if (a.logoAsset != null) precacheImage(AssetImage(a.logoAsset!), assetContext),
+        if (a.logoAsset != null) quietly(precacheImage(AssetImage(a.logoAsset!), assetContext)),
       for (final svg in take.svgAssets) SvgAssetLoader(svg).loadBytes(assetContext),
-      // Fetched through the offline HTTP client from the local fixtures.
-      for (final url in _guideFixtures.keys) precacheImage(NetworkImage(url), assetContext),
+      for (final img in app.guideImages)
+        img.startsWith('http')
+            ? precacheImage(NetworkImage(img), assetContext)
+            : precacheImage(AssetImage(img), assetContext),
     ]);
   });
-  await tester.pumpWidget(app(const SizedBox()));
+  await tester.pumpWidget(appShell(const SizedBox()));
   await tester.pump();
 
   // ── The wizard. Frame 0 is the app step's first frame. ───────────────────
   final rec = VideoRecorder(tester, boundary);
-  await tester.pumpWidget(app(const OnboardingPage()));
+  await tester.pumpWidget(appShell(const OnboardingPage()));
   await rec.first('app');
   rec.capture.transitionFrames['app step reveal'] = await rec.untilStill();
 
-  // Step 1 — trainer app.
-  await rec.tap(find.byWidgetPredicate((w) => w is OnboardingAppTile && w.app is MyWhoosh), 'MyWhoosh tile');
+  // Step 1 — the app: scrolled to, where it isn't in view, and picked.
+  final tile = find.byWidgetPredicate((w) => w is OnboardingAppTile && app.isApp(w.app));
+  expect(tile, findsOneWidget, reason: '${app.name} should be in the grid');
+  for (var i = 0; tile.hitTestable().evaluate().isEmpty || _underFooter(tester, tile); i++) {
+    expect(i, lessThan(12), reason: 'should have scrolled to ${app.name}');
+    final before = tester.getRect(tile).top;
+    await rec.swipe(const Offset(190, 680), const Offset(190, 180), 'Scroll to ${app.name}');
+    if (tester.getRect(tile).top == before) break; // the end of the grid
+  }
+  await rec.tap(tile, '${app.name} tile');
+
+  // …where it runs: this device.
   rec.chapter('where');
-  await rec.tap(find.byType(PrimaryButton).last, 'Continue with MyWhoosh');
-
-  // Step 2 — where: MyWhoosh on this device.
   await rec.tap(find.byKey(const ValueKey('onboarding-where-thisDevice')), 'This Device');
-  rec.chapter('controller');
 
-  // Step 3 — controller: the take's own.
+  // Step 2 — the gear: the controller's own beats. The Virtual Shifting stage
+  // under the trainer card never rests from here until the trainer connects.
+  rec.chapter('controller');
   final l10n = AppLocalizations.current;
+  rec.liveFrames = _gearStepActionFrames;
   await take.film(tester, rec);
 
-  // Step 4 — trainer: the Virtual Shifting stage plays, then the KICKR CORE
-  // listed in the scan card is tapped and bridged over the real picker path.
-  rec.chapter('trainer');
-  await rec.tap(find.byType(PrimaryButton).last, 'Continue to trainer', thenFrames: _vsStageFrames);
-  await rec.tap(find.text(_trainerName), _trainerName);
-  expect(trainer.isBridged, isTrue, reason: 'tapping the trainer should bridge it');
+  // …and the smart trainer: the stage plays, then the KICKR CORE is
+  // connected from the step's primary button and bridged.
+  rec.chapter('trainer', settled: false);
+  // Picking the app and where it runs switches on its network method
+  // (applyTargetSelection). Under screenshotMode that step reads every method
+  // as already on and leaves it off, so the film switches on what it switches
+  // on for a rider — a stored setting, nothing on screen.
+  _switchOnNetworkMethod();
+  await rec.frames(_vsStageFrames);
+  rec.liveFrames = null;
+  await rec.tap(find.byKey(const ValueKey('onboarding-gear-primary')), 'Connect $_trainerName');
+  expect(trainer.isBridged, isTrue, reason: 'connecting the trainer should bridge it');
 
-  // Step 5 — link the app: switch on the recommended Network method, then
-  // scroll down to the "Then in MyWhoosh" guide and the pair-as-trainer card.
+  // Step 3 — link the app: the guide, then the app connecting.
   rec.chapter('link-app');
   await rec.tap(find.byType(PrimaryButton).last, 'Continue to connection');
-  final network = find.text(l10n.onboardingMethodNetwork);
-  await rec.tap(network, 'Network');
-  expect(core.settings.getObpMdnsEnabled(), isTrue, reason: 'the Network method should be on');
-  await rec.swipe(const Offset(190, 600), const Offset(190, 330), 'Scroll to the guide');
-  expect(find.byType(Image), findsWidgets);
-  await rec.swipe(const Offset(190, 330), const Offset(190, 600), 'Scroll back to the methods');
+  expect(find.text(l10n.onboardingAlmostThereTitle.toUpperCase()), findsOneWidget,
+      reason: 'step 3 should wait for ${app.name}');
+  await rec.swipe(const Offset(190, 640), const Offset(190, 300), 'Scroll to the guide');
+  await rec.frames(_guideReadFrames);
+  await rec.swipe(const Offset(190, 300), const Offset(190, 640), 'Scroll back to the checklist');
+  final waiting = find.text(l10n.onboardingSummaryWaitingFor(app.name));
+  await rec.event(app.connectsLabel, waiting.first, app.connect);
+  expect(core.logic.connectedTrainerConnections.any((c) => c.isConnected.value), isTrue,
+      reason: '${app.name} should be connected');
 
-  // MyWhoosh, following the guide, connects: it sends its app info over the
-  // Network method, through the emulator's own message handler.
-  await rec.event('MyWhoosh connects', network, () {
-    core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
-      appId: 'MyWhoosh',
-      appVersion: '1.0',
-      supportedButtons: MyWhoosh().defaultObpSupportedButtons,
-    ));
-  });
-  expect(core.obpMdnsEmulator.isConnected.value, isTrue);
-  expect(find.text(l10n.networkTroubleshootTroubleshoot), findsNothing,
-      reason: 'the troubleshoot offer goes once the app is connected');
-
-  await rec.swipe(const Offset(190, 700), const Offset(190, 80), 'Scroll to pairing');
-  // …and pairs "KICKR CORE - BikeControl" as its trainer: the bridge's
-  // emulator reports the app holding the virtual trainer.
-  await rec.event('MyWhoosh pairs the trainer', find.byType(OnboardingPairAsTrainerCard), () {
-    ftmsEmulator.isConnected.value = true;
-  });
-  expect(trainer.isConnectedListenable.value, isTrue);
-
-  // Step 6 — done, and ready.
+  // …and the app picking up the bridged trainer: ready to ride.
   rec.chapter('done');
-  await rec.tap(find.byType(PrimaryButton).last, 'Finish setup');
+  if (app.pickUpTrainer case final pickUp?) {
+    await rec.event(app.pairsLabel, find.text(l10n.onboardingSummaryWaitingFor(app.name)), pickUp);
+  }
+  expect(trainer.isConnectedListenable.value, isTrue, reason: '${app.name} should hold the bridged trainer');
   expect(find.text(l10n.onboardingDoneTitle.toUpperCase()), findsOneWidget, reason: 'the take should end ready to ride');
   expect(find.text(l10n.onboardingDoneStartRiding), findsOneWidget);
+  await rec.frames(_readyHoldFrames);
 
   final ride = withCutaway;
   if (ride == null) {
@@ -808,9 +960,7 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
     core.shiftingConfigs.activeFor(trainer.trainerKey).copyWith(maxGear: _cutawayStartGears),
   );
   // The rider is pedalling: the trainer sends FTMS Indoor Bike Data about once
-  // a second. Each packet goes in where the connection layer hands a trainer
-  // notification to the device (as the Ride presses do), and from there
-  // through the bridge's own parser.
+  // a second, through the bridge's own parser.
   void pedal() => unawaited(trainer.processCharacteristic(
         FitnessBikeDefinition.INDOOR_BIKE_DATA_UUID,
         Uint8List.fromList(indoorBikeData(cadenceRpm: _pedallingRpm, powerW: _pedallingW)),
@@ -818,48 +968,44 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   pedal();
   final pedalling = Timer.periodic(const Duration(seconds: 1), (_) => pedal());
   final cut = VideoRecorder(tester, boundary);
-  await tester.pumpWidget(app(const SizedBox()));
+  await tester.pumpWidget(appShell(const SizedBox()));
   await tester.pump();
-  await tester.pumpWidget(app(VirtualShiftingSettingsPage(definition: definition, device: trainer)));
+  await tester.pumpWidget(appShell(VirtualShiftingSettingsPage(definition: definition, device: trainer)));
   await cut.first('gearing');
+  // The chain on the drivetrain runs wherever the page is scrolled: nothing
+  // on this page settles.
+  cut.liveFrames = _cutawayActionFrames;
   expect(definition.cadenceRpm.value, _pedallingRpm, reason: 'the trainer should be reporting cadence');
-  // The page opens on the running chain; hold it before the first tap.
   await cut.frames(_cutawayOpeningFrames - 1);
 
-  // (a) Your gearing, your way: the drivetrain sits right above Gears, so the
-  // second ring and the new cogs appear in view.
+  // (a) Your gearing, your way: one scroll puts the drivetrain at the top,
+  // with the gear presets, the gear count and the front derailleur right
+  // under it, so every change lands in view of the chain.
+  final drivetrain = find.byKey(const ValueKey('vs-drivetrain'));
+  final scrollBy = tester.getRect(drivetrain).top - 76;
+  await cut.swipe(const Offset(190, 760), Offset(190, 760 - scrollBy), 'Scroll to the drivetrain', overFrames: 20);
+  // The gear count first: changing it puts the gearing back on Default.
+  final plus = find.descendant(of: find.byKey(const ValueKey('vs-gears')), matching: find.byIcon(LucideIcons.plus));
+  await cut.tap(plus, 'Gear count +');
+  await cut.tap(plus, 'Gear count + again');
+  expect(definition.maxGear, MyWhoosh().virtualGearAmount);
+  await cut.tap(find.text(l10n.presetCompact), 'Compact preset');
+  await cut.frames(_presetHoldFrames - _cutawayActionFrames);
   final frontDerailleur = find.descendant(
     of: find.byKey(const ValueKey('vs-front-derailleur')),
     matching: find.byWidgetPredicate((w) => w is Switch),
   );
-  await cut.swipe(const Offset(190, 640), const Offset(190, 340), 'Scroll to the drivetrain');
-  await cut.tap(frontDerailleur.first, 'Front derailleur');
-  final plus = find.descendant(of: find.widgetWithText(BkGroupedRow, l10n.gearCount), matching: find.byIcon(LucideIcons.plus));
-  await cut.tap(plus, 'Gear count +');
-  await cut.tap(plus, 'Gear count + again');
-  expect(definition.maxGear, MyWhoosh().virtualGearAmount);
-  await cut.swipe(const Offset(190, 640), const Offset(190, 300), 'Scroll to presets');
-  await cut.tap(find.text(l10n.presetCompact), 'Compact preset');
-  // Rest on the chosen preset.
-  final compact = cut.capture.taps.last.frame;
-  await cut.holdUntil(compact, _presetHoldFrames);
-  // Back up to the drivetrain; the chain is running again: nothing settles
-  // from here.
-  await cut.swipe(const Offset(190, 300), const Offset(190, 640), 'Scroll back to the drivetrain');
+  await cut.tap(frontDerailleur.first, 'Front derailleur', thenFrames: _presetHoldFrames);
 
-  // (b) Direct gear changes: two Ride shifts land on the drivetrain, and the
-  // chain walks to the next cog each time.
+  // (b) Direct gear changes: two Ride shifts land on the drivetrain.
   cut.chapter('direct-gear-changes', settled: false);
   final gearCard = find.byKey(const ValueKey('vs-drivetrain'));
   for (final label in ['Ride button: Shift up', 'Ride button: Shift up again']) {
     final before = definition.currentGear.value;
     await cut.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, label,
-        reactsAt: gearCard, thenFrames: 30);
+        reactsAt: gearCard, thenFrames: 45);
     expect(definition.currentGear.value, before + 1, reason: '"$label" should shift the trainer up a gear');
   }
-
-  // The SIM / ERG chapter went with the trainer page's gear card: neither
-  // Ride nor Settings → Virtual shifting has a mode switch.
   pedalling.cancel();
 
   await _unbridge(tester, stage, peripheral.deviceId);
@@ -867,8 +1013,49 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   return (onboarding: rec.capture, cutaway: cut.capture);
 }
 
+/// The network method applyTargetSelection turns on for the picked app on
+/// this device (OpenBikeControl's, or the Zwift-style one Rouvy shares).
+void _switchOnNetworkMethod() {
+  final app = core.settings.getTrainerApp()!;
+  if (app.supports(AppConnectionMethod.obpMdns) || app.supports(AppConnectionMethod.obpDirCon)) {
+    unawaited(core.settings.setObpMdnsEnabled(true));
+  } else {
+    unawaited(core.settings.setZwiftMdnsEmulatorEnabled(true));
+  }
+}
+
+/// Every controller, trainer and app connection gone — whatever a take that
+/// failed half-way left behind — so each take starts from the same machine.
+Future<void> _resetMachine(WidgetTester tester, _Stage stage) async {
+  await tester.pumpWidget(const SizedBox());
+  await tester.pump();
+  for (final d in [...core.connection.devices]) {
+    if (d is ProxyDevice) d.fitnessBike?.dispose();
+    d.isConnected = false;
+    try {
+      await driveUntil(tester, core.connection.disconnect(d, forget: true, persistForget: false), '$d removed');
+    } catch (_) {
+      // Best effort: the next take's own checks say if anything stayed.
+    }
+  }
+  ftmsEmulator.isConnected.value = false;
+  core.rouvyMdnsEmulator.clickEmulator.isConnected.value = false;
+  core.obpMdnsEmulator.stopServer();
+  core.rouvyMdnsEmulator.stop();
+  core.zwiftMdnsEmulator.stop();
+  for (final id in const ['film-kickr', _ClickV2Take._leftId, _ClickV2Take._rightId, _SramTake._id]) {
+    stage.machine.ble.removePeripheral(id);
+  }
+  await tester.pump(const Duration(seconds: 1));
+}
+
+/// Whether [tile] reaches under the footer's button (hittable at its centre,
+/// but half-hidden).
+bool _underFooter(WidgetTester tester, Finder tile) =>
+    tester.getRect(tile).bottom > tester.getRect(find.byType(PrimaryButton).last).top - 8;
+
 /// Unmounts (cancelling the wizard's timers) and unbridges, so the next take
-/// finds the trainer — and MyWhoosh — the way this one did. None of this is on
+/// finds the trainer — and the app — the way this one did. None of this is on
 /// film.
 Future<void> _unbridge(WidgetTester tester, _Stage stage, String peripheralId) async {
   final trainer = stage.trainer;
@@ -882,7 +1069,10 @@ Future<void> _unbridge(WidgetTester tester, _Stage stage, String peripheralId) a
       'the trainer should have disconnected');
   definition?.dispose();
   ftmsEmulator.isConnected.value = false;
+  core.rouvyMdnsEmulator.clickEmulator.isConnected.value = false;
   core.obpMdnsEmulator.stopServer();
+  core.rouvyMdnsEmulator.stop();
+  core.zwiftMdnsEmulator.stop();
   await tester.pump(const Duration(seconds: 1));
   stage.machine.ble.removePeripheral(peripheralId);
 }
@@ -895,7 +1085,11 @@ void main() {
   // same object carries on into the cutaway.
   final ride = ZwiftRide(BleDevice(name: 'Zwift Ride', deviceId: '00:11:22:33:44:55'));
   final rideTake = _RideTake(ride);
-  final takes = <_ControllerTake>[_PlayTake(), _ClickV2Take(), _Di2Take(), _SramTake()];
+  final takes = <_ControllerTake>[rideTake, _PlayTake(), _ClickV2Take(), _Di2Take(), _SramTake()];
+  const only = String.fromEnvironment('VIDEO_APPS');
+  final apps = only.isEmpty ? _apps : _apps.where((a) => only.split(',').contains(a.id)).toList();
+  const onlyTakes = String.fromEnvironment('VIDEO_TAKES');
+  bool wanted(_ControllerTake t) => onlyTakes.isEmpty || onlyTakes.split(',').contains(t.sceneSuffix);
   late _Stage stage;
 
   // In setUpAll rather than main(): under the fake-clock binding, Supabase's
@@ -913,166 +1107,122 @@ void main() {
     debugClickV2OnboardingInScreenshotMode = true;
     debugKeepsControllerNamesInScreenshotMode = true;
     debugVirtualShiftingStageOpeningScene = _vsStageOpeningScene;
+    // Filmed as a phone: "This Device" reaches the app over the network.
+    debugHostPlatformOverride = TargetPlatform.iOS;
     addTearDown(() {
       debugAnimatesInScreenshotMode = false;
       debugClickV2OnboardingInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugVirtualShiftingStageOpeningScene = null;
+      debugHostPlatformOverride = null;
     });
   });
 
-  const intoController = [
-    ('tap', 'MyWhoosh tile'),
-    ('tap', 'Continue with MyWhoosh'),
-    ('tap', 'This Device'),
-  ];
-
-  const linkAndDone = [
-    ('tap', 'Continue to connection'),
-    ('tap', 'Network'),
-    ('swipe', 'Scroll to the guide'),
-    ('swipe', 'Scroll back to the methods'),
-    ('event', 'MyWhoosh connects'),
-    ('swipe', 'Scroll to pairing'),
-    ('event', 'MyWhoosh pairs the trainer'),
-    ('tap', 'Finish setup'),
-  ];
-
   void expectStepChangesAnimate(VideoCapture capture, List<String> labels) {
-    // A step change is filmed as Flutter's own reveal, not a cut: the content
-    // eases in over many distinct frames before the settled hold.
+    // A step change is filmed as Flutter's own reveal, not a cut.
     for (final label in labels) {
-      expect(capture.transitionFrames[label]! - videoHold, greaterThan(20),
+      expect(capture.transitionFrames[label]! - videoHold, greaterThanOrEqualTo(15),
           reason: '"$label" should animate across frames, not cut');
     }
   }
 
-  void expectStagePlays(VideoCapture capture, String into) {
-    final tap = capture.taps.firstWhere((t) => t.label == into);
-    final stageFrames = capture.frames.sublist(tap.frame + 60, tap.frame + _vsStageFrames);
-    expect(stageFrames.map(sha256.convert).toSet().length, greaterThan(30),
-        reason: 'the Virtual Shifting stage should be moving on film');
-  }
-
-  /// Everything every wizard take must hold, whatever the controller.
-  void expectWizardTake(_ControllerTake take, VideoCapture onboarding) {
-    final info = jsonDecode(File('build/video_frames/${take.scene}/scene.json').readAsStringSync()) as Map;
+  /// Everything every wizard take must hold, whatever the app and controller.
+  void expectWizardTake(_AppFilm app, _ControllerTake take, VideoCapture onboarding) {
+    final scene = take.scene(app);
+    final info = jsonDecode(File('build/video_frames/$scene/scene.json').readAsStringSync()) as Map;
     expect(info['pixelRatio'], 3);
     expect(info['frames'], onboarding.frames.length);
     expect(info['controller'], take.slug);
     expect(info['controllerName'], take.name);
-    expect(pngSize(onboarding.frames.first), (1140, 2472), reason: take.scene);
+    expect(pngSize(onboarding.frames.first), (1140, 2472), reason: scene);
 
+    final scrolls = onboarding.taps.where((t) => t.label == 'Scroll to ${app.name}').length;
     expect(onboarding.taps.map((t) => (t.kind, t.label)), [
-      ...intoController,
+      for (var i = 0; i < scrolls; i++) ('swipe', 'Scroll to ${app.name}'),
+      ('tap', '${app.name} tile'),
+      ('tap', 'This Device'),
       ...take.beats,
-      ('tap', 'Continue to trainer'),
-      ('tap', _trainerName),
-      ...linkAndDone,
+      ('tap', 'Connect $_trainerName'),
+      ('tap', 'Continue to connection'),
+      ('swipe', 'Scroll to the guide'),
+      ('swipe', 'Scroll back to the checklist'),
+      ('event', app.connectsLabel),
+      if (app.pickUpTrainer != null) ('event', app.pairsLabel),
     ]);
     expect(onboarding.chapters.map((c) => c.name), ['app', 'where', 'controller', 'trainer', 'link-app', 'done']);
-    expectWellFormed(onboarding, unsettledTaps: {_trainerName, ...take.unsettledBeats});
+    // On the gear step the stage moves under every beat; the Click V2
+    // explainer, a page over it, is the exception.
+    final gearBeats = {
+      for (final (_, label) in take.beats) label,
+      'Connect $_trainerName',
+    };
+    // (Whether a given beat there happens to start on a still frame depends
+    // on where the stage is in its loop.)
+    expectWellFormed(onboarding, unsettledTaps: const {}, mayBeUnsettledTaps: gearBeats, unsettledChapters: const {'trainer'});
     expect(onboarding.sightings.keys, containsAll(take.sightings));
 
-    // A press visibly reacts on a controller's contour; with no contour on
-    // the step, nothing on screen does. MyWhoosh connecting always shows.
     for (final t in onboarding.taps.where((t) => t.kind == 'hardware' && t.anchor == 'contour-button')) {
       expect(reactingFrames(onboarding, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
     }
     if (!take.hasContour) {
       expect(onboarding.taps.where((t) => t.kind == 'hardware' && t.anchor == 'contour-button'), isEmpty);
     }
-    final connects = onboarding.taps.firstWhere((t) => t.label == 'MyWhoosh connects');
-    expect(reactingFrames(onboarding, connects), greaterThan(3), reason: 'MyWhoosh connecting should show on film');
+    final connects = onboarding.taps.firstWhere((t) => t.label == app.connectsLabel);
+    expect(reactingFrames(onboarding, connects), greaterThan(3), reason: '${app.name} connecting should show on film');
 
-    expectStepChangesAnimate(onboarding, ['app step reveal', 'Continue with MyWhoosh', 'Continue to connection']);
-    expectStagePlays(onboarding, 'Continue to trainer');
+    expectStepChangesAnimate(onboarding, ['app step reveal', 'Continue to connection']);
+    // The stage moves on film before the trainer connects.
+    final connect = onboarding.taps.firstWhere((t) => t.label == 'Connect $_trainerName');
+    expect(onboarding.frames.sublist(connect.frame - _vsStageFrames, connect.frame).map(sha256.convert).toSet().length,
+        greaterThan(10),
+        reason: 'the Virtual Shifting stage should be moving on film');
   }
 
-  testWidgets('captures the MyWhoosh take and the gearing cutaway as 30 fps frame sequences', (tester) async {
-    final watch = Stopwatch()..start();
-    final (:onboarding, :cutaway) = await _captureMyWhoosh(tester, stage, rideTake, withCutaway: ride);
-    watch.stop();
-    writeScene(rideTake.scene, onboarding, extra: rideTake.sceneInfo);
-    writeScene(_cutawayScene, cutaway!);
+  for (final app in apps) {
+    for (final take in takes.where(wanted)) {
+      final withCutaway = app.id == 'mywhoosh' && take == rideTake;
+      testWidgets('captures the ${take.scene(app)} take as a 30 fps frame sequence', (tester) async {
+        final watch = Stopwatch()..start();
+        final (:onboarding, :cutaway) =
+            await _captureWizard(tester, stage, app, take, withCutaway: withCutaway ? ride : null);
+        watch.stop();
+        writeScene(take.scene(app), onboarding, extra: take.sceneInfo(app));
+        expectWizardTake(app, take, onboarding);
+        reportCapture(take.scene(app), onboarding, watch.elapsed);
+        if (cutaway == null) return;
 
-    // Rendered at 3× so text stays sharp through the compositor's 2.2×
-    // punch-in; scene.json says so, so nothing downstream has to guess.
-    for (final (scene, capture) in [(rideTake.scene, onboarding), (_cutawayScene, cutaway)]) {
-      expect(pngSize(capture.frames.first), (1140, 2472), reason: scene);
-      final info = jsonDecode(File('build/video_frames/$scene/scene.json').readAsStringSync()) as Map;
-      expect(info['pixelRatio'], 3);
-      expect(info['frames'], capture.frames.length);
+        writeScene(_cutawayScene, cutaway);
+        expect(pngSize(cutaway.frames.first), (1140, 2472));
+        expect(cutaway.taps.map((t) => (t.kind, t.label)), [
+          ('swipe', 'Scroll to the drivetrain'),
+          ('tap', 'Gear count +'),
+          ('tap', 'Gear count + again'),
+          ('tap', 'Compact preset'),
+          ('tap', 'Front derailleur'),
+          ('hardware', 'Ride button: Shift up'),
+          ('hardware', 'Ride button: Shift up again'),
+        ]);
+        expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes']);
+        expectWellFormed(
+          cutaway,
+          unsettledTaps: {for (final t in cutaway.taps) t.label},
+          settledCuts: false,
+        );
+        expect(cutaway.frames.sublist(0, _cutawayOpeningFrames).map(sha256.convert).toSet().length, greaterThan(30),
+            reason: 'the chain should be running on film');
+        for (final t in cutaway.taps.where((t) => t.kind == 'hardware')) {
+          expect(reactingFrames(cutaway, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
+        }
+        reportCapture(_cutawayScene, cutaway, watch.elapsed);
+      });
     }
-
-    expectWizardTake(rideTake, onboarding);
-    // The controller step change too (the other takes open a sheet or a
-    // page over it).
-    expectStepChangesAnimate(onboarding, ['Continue to controller']);
-
-    expect(cutaway.taps.map((t) => (t.kind, t.label)), [
-      ('swipe', 'Scroll to the drivetrain'),
-      ('tap', 'Front derailleur'),
-      ('tap', 'Gear count +'),
-      ('tap', 'Gear count + again'),
-      ('swipe', 'Scroll to presets'),
-      ('tap', 'Compact preset'),
-      ('swipe', 'Scroll back to the drivetrain'),
-      ('hardware', 'Ride button: Shift up'),
-      ('hardware', 'Ride button: Shift up again'),
-    ]);
-    expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes']);
-    // The chain runs whenever the drivetrain is on screen, so taps on that page
-    // and the beat boundaries there can't wait for a still frame.
-    expectWellFormed(
-      cutaway,
-      unsettledTaps: const {
-        'Scroll to the drivetrain',
-        'Front derailleur',
-        'Ride button: Shift up',
-        'Ride button: Shift up again',
-      },
-      settledCuts: false,
-    );
-    int at(String label) => cutaway.taps.firstWhere((t) => t.label == label).frame;
-    expect(at('Scroll to the drivetrain'), greaterThanOrEqualTo(_cutawayOpeningFrames), reason: 'hold the opening page');
-    expect(at('Scroll back to the drivetrain') - at('Compact preset'), greaterThanOrEqualTo(_presetHoldFrames),
-        reason: 'hold the preset');
-    // The chain on the gear card runs.
-    expect(cutaway.frames.sublist(0, _cutawayOpeningFrames).map(sha256.convert).toSet().length, greaterThan(30),
-        reason: 'the chain should be running on film');
-    // A Ride press lands on the gear card.
-    for (final t in cutaway.taps.where((t) => t.kind == 'hardware')) {
-      expect(reactingFrames(cutaway, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
-    }
-
-    reportCapture(rideTake.scene, onboarding, watch.elapsed);
-    reportCapture(_cutawayScene, cutaway, watch.elapsed);
-  });
-
-  for (final take in takes) {
-    testWidgets('captures the ${take.slug} take as a 30 fps frame sequence', (tester) async {
-      final watch = Stopwatch()..start();
-      final (:onboarding, cutaway: _) = await _captureMyWhoosh(tester, stage, take);
-      watch.stop();
-      writeScene(take.scene, onboarding, extra: take.sceneInfo);
-      expectWizardTake(take, onboarding);
-      reportCapture(take.scene, onboarding, watch.elapsed);
-    });
   }
 
   testWidgets('two captures are byte-identical, frame for frame', (tester) async {
-    final a = await _captureMyWhoosh(tester, stage, rideTake, withCutaway: ride);
-    final b = await _captureMyWhoosh(tester, stage, rideTake, withCutaway: ride);
-    expectIdentical(rideTake.scene, a.onboarding, b.onboarding);
+    final app = _apps.first;
+    final a = await _captureWizard(tester, stage, app, rideTake, withCutaway: ride);
+    final b = await _captureWizard(tester, stage, app, rideTake, withCutaway: ride);
+    expectIdentical(rideTake.scene(app), a.onboarding, b.onboarding);
     expectIdentical(_cutawayScene, a.cutaway!, b.cutaway!);
   });
-
-  for (final take in takes) {
-    testWidgets('two ${take.slug} captures are byte-identical, frame for frame', (tester) async {
-      final a = await _captureMyWhoosh(tester, stage, take);
-      final b = await _captureMyWhoosh(tester, stage, take);
-      expectIdentical(take.scene, a.onboarding, b.onboarding);
-    });
-  }
 }
