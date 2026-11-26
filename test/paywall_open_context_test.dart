@@ -9,7 +9,9 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, navigatorKey;
 import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/pro_trial.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -17,6 +19,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'widget_snapshot.dart';
 
 Future<void> main() async {
+  // Outside every promo window unless a test opens one, so the results do not
+  // depend on the day the suite runs.
+  setUp(() {
+    CrossPlatformBasePromo.now = () => DateTime.utc(2026, 12, 1);
+    StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 12, 1);
+  });
   await ensureSnapshotHarness();
 
   /// Mounts [home] and hands back the context captured by [capture], which the
