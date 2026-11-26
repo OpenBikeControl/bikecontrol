@@ -146,7 +146,6 @@ import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart' show TargetPlatform;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -360,7 +359,7 @@ final _apps = <_AppFilm>[
 abstract class _ControllerTake {
   _ControllerTake({required this.sceneSuffix, required this.slug, required this.name});
 
-  /// Scene folder suffix: build/video_frames/<app>-<suffix>.
+  /// Scene folder suffix: `build/video_frames/<app>-<suffix>`.
   final String sceneSuffix;
 
   /// The website's device slug.
@@ -402,7 +401,7 @@ abstract class _ControllerTake {
   Future<void> unstage(WidgetTester tester, _Stage stage);
 }
 
-/// "Continue with <app>" — the tap that leaves step 1 for the gear step.
+/// `Continue with <app>` — the tap that leaves step 1 for the gear step.
 /// The gear step builds in over ~1 s; it is given [_gearStepEntryFrames]
 /// before the first press, so the page is seen whole (and the compositor's
 /// camera pulls out for the page change rather than panning across it).
