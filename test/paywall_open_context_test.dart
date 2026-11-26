@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, navigatorKey;
 import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
+import 'package:bike_control/utils/iap/pro_trial.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +19,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'widget_snapshot.dart';
 
 Future<void> main() async {
+  // Outside every promo window unless a test opens one, so the results do not
+  // depend on the day the suite runs.
+  setUp(() {
+    CrossPlatformBasePromo.now = () => DateTime.utc(2026, 12, 1);
+    StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 12, 1);
+  });
   await ensureSnapshotHarness();
 
   /// Mounts [home] and hands back the context captured by [capture], which the
@@ -64,10 +72,15 @@ Future<void> main() async {
 
   testWidgets('paywall opens from a context with no DrawerOverlay ancestor', (tester) async {
     // No Scaffold: exactly what the onboarding State's own context looked like.
-    final context = await pumpApp(tester, (capture) => Builder(builder: (c) {
+    final context = await pumpApp(
+      tester,
+      (capture) => Builder(
+        builder: (c) {
           capture(c);
           return const SizedBox.expand();
-        }));
+        },
+      ),
+    );
     expect(DrawerOverlay.maybeFind(context), isNull, reason: 'the test must actually reproduce the bad context');
 
     await tapGoPro(tester, context);
@@ -81,12 +94,17 @@ Future<void> main() async {
   testWidgets('paywall still opens as a drawer when a DrawerOverlay is in scope', (tester) async {
     // Scaffold creates the DrawerOverlay, so this context is the healthy one —
     // guards against the fallback quietly becoming the only path.
-    final context = await pumpApp(tester, (capture) => Scaffold(
-          child: Builder(builder: (c) {
+    final context = await pumpApp(
+      tester,
+      (capture) => Scaffold(
+        child: Builder(
+          builder: (c) {
             capture(c);
             return const SizedBox.expand();
-          }),
-        ));
+          },
+        ),
+      ),
+    );
     expect(DrawerOverlay.maybeFind(context), isNotNull);
 
     await tapGoPro(tester, context);
@@ -104,12 +122,17 @@ Future<void> main() async {
   testWidgets('a Base purchase landing while the paywall is open closes it and confirms what Base covers', (
     tester,
   ) async {
-    final context = await pumpApp(tester, (capture) => Scaffold(
-          child: Builder(builder: (c) {
+    final context = await pumpApp(
+      tester,
+      (capture) => Scaffold(
+        child: Builder(
+          builder: (c) {
             capture(c);
             return const SizedBox.expand();
-          }),
-        ));
+          },
+        ),
+      ),
+    );
     await tapGoPro(tester, context);
     expect(find.byType(Paywall), findsOneWidget);
 
@@ -154,10 +177,15 @@ Future<void> main() async {
   // confirmation dialog just pushed, or the route beneath it.
   testWidgets('dialog host: a second entitlement notify during the close does not pop again', (tester) async {
     // No Scaffold → no DrawerOverlay → _showPaywall's dialog fallback.
-    final context = await pumpApp(tester, (capture) => Builder(builder: (c) {
+    final context = await pumpApp(
+      tester,
+      (capture) => Builder(
+        builder: (c) {
           capture(c);
           return const SizedBox.expand();
-        }));
+        },
+      ),
+    );
     await tapGoPro(tester, context);
     expect(find.byType(Paywall), findsOneWidget);
     expect(find.byType(SheetPullToDismiss), findsNothing, reason: 'must be the dialog host');
@@ -199,12 +227,17 @@ Future<void> main() async {
   });
 
   testWidgets('a purchase flag that flips without a purchase attempt only closes the paywall', (tester) async {
-    final context = await pumpApp(tester, (capture) => Scaffold(
-          child: Builder(builder: (c) {
+    final context = await pumpApp(
+      tester,
+      (capture) => Scaffold(
+        child: Builder(
+          builder: (c) {
             capture(c);
             return const SizedBox.expand();
-          }),
-        ));
+          },
+        ),
+      ),
+    );
     await tapGoPro(tester, context);
     expect(find.byType(Paywall), findsOneWidget);
 
