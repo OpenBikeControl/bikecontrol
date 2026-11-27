@@ -13,6 +13,7 @@ import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/action_groups.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -548,6 +549,85 @@ void main() {
 
       expect(_pair(InGameAction.pause).hasActiveAction, isFalse);
       expect(_pair(InGameAction.rideOnBomb).hasActiveAction, isTrue);
+    });
+  });
+
+  // Rouvy's BLE controller list carries Up/Down under Zwift's names (action
+  // bar, U-turn), which put Down under Ride and left Navigate without it.
+  group('Rouvy lists the D-pad as Up/Down', () {
+    setUp(() => core.settings.setTrainerApp(Rouvy()));
+
+    test('the picker offers up and down, not the Zwift names', () {
+      final actions = appControllerActions(core.zwiftEmulator.supportedActions);
+
+      expect(actions, containsAll([InGameAction.up, InGameAction.down]));
+      expect(actions, isNot(contains(InGameAction.openActionBar)));
+      expect(actions, isNot(contains(InGameAction.uturn)));
+    });
+
+    test('both sit under Navigate in d-pad order', () {
+      final groups = groupActions(appControllerActions(core.zwiftEmulator.supportedActions));
+      final navigate = groups.firstWhere((g) => g.group == ActionGroup.navigate).actions;
+
+      expect(navigate, [
+        InGameAction.up,
+        InGameAction.down,
+        InGameAction.navigateLeft,
+        InGameAction.navigateRight,
+        InGameAction.select,
+        InGameAction.back,
+      ]);
+    });
+
+    test('up and down resolve to the controller actions', () {
+      expect(resolveControllerAction(InGameAction.up), InGameAction.openActionBar);
+      expect(resolveControllerAction(InGameAction.down), InGameAction.uturn);
+    });
+
+    test('a button stored under the Zwift name shows as the Rouvy one', () async {
+      await core.settings.setZwiftMdnsEmulatorEnabled(true);
+      await core.settings.setZwiftBleEmulatorEnabled(true);
+
+      expect(displayedControllerAction(InGameAction.openActionBar), InGameAction.up);
+      expect(displayedControllerAction(InGameAction.uturn), InGameAction.down);
+      expect(displayedControllerAction(InGameAction.usePowerUp), InGameAction.kudos);
+      expect(displayedControllerAction(InGameAction.shiftUp), InGameAction.shiftUp);
+      expect(_pair(InGameAction.openActionBar).actionLabel, InGameAction.up.title);
+    });
+
+    for (final (action, button) in [
+      (InGameAction.up, RideButtonMask.UP_BTN),
+      (InGameAction.down, RideButtonMask.DOWN_BTN),
+    ]) {
+      test('${action.name} presses ${button.name} over Bluetooth', () async {
+        final channel = _RecordingPeripheralChannel()..install();
+        addTearDown(channel.remove);
+
+        final result = await ZwiftEmulator().sendAction(_pair(action), isKeyDown: true, isKeyUp: false);
+
+        expect(result, isA<Success>());
+        expect(_buttonMapOf(channel.notifications.single, hasOpcode: true), _released(button));
+      });
+
+      test('${action.name} presses ${button.name} over the network', () async {
+        final click = _RecordingClickEmulator();
+
+        final result = await RouvyMdnsEmulator(
+          clickEmulator: click,
+        ).sendAction(_pair(action), isKeyDown: true, isKeyUp: false);
+
+        expect(result, isA<Success>());
+        expect(_buttonMapOf(click.notifications.single), _released(button));
+      });
+    }
+
+    test('other apps keep the Zwift names', () {
+      core.settings.setTrainerApp(Zwift());
+
+      final actions = appControllerActions(core.zwiftEmulator.supportedActions);
+      expect(actions, containsAll([InGameAction.openActionBar, InGameAction.uturn]));
+      expect(resolveControllerAction(InGameAction.up), InGameAction.up);
+      expect(displayedControllerAction(InGameAction.openActionBar), InGameAction.openActionBar);
     });
   });
 }

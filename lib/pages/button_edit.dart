@@ -148,7 +148,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   /// The [HoldActionWarning] under the card for [action] when it is the
   /// picked one and only works while held, but this is a click.
   List<Widget> _holdWarningAfter(InGameAction action, {required bool isActive}) {
-    if (!isActive || _holdWarningPlaced || !_keyPair.holdActionOnClick || _keyPair.inGameAction != action) {
+    if (!isActive ||
+        _holdWarningPlaced ||
+        !_keyPair.holdActionOnClick ||
+        displayedControllerAction(_keyPair.inGameAction) != action) {
       return const [];
     }
     _holdWarningPlaced = true;
@@ -1082,7 +1085,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ActionGroupTitle(group: group),
         for (final action in actions) ...[
           card(action),
-          ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
+          ..._holdWarningAfter(action, isActive: displayedControllerAction(_keyPair.inGameAction) == action),
         ],
         if (actions.any(marked.contains)) _myWhooshPoorSupportNote(),
       ],
@@ -1131,7 +1134,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               : RideControllerPress.caption(action) != null
               ? Text(RideControllerPress.caption(action)!)
               : null,
-          isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
+          isActive: displayedControllerAction(_keyPair.inGameAction) == action && supportedActions.contains(action),
           onPressed: () {
             if (action.possibleValues?.isNotEmpty == true) {
               showDropdown(

@@ -559,11 +559,13 @@ class KeyPair {
   String get actionLabel => _label(coordinates: false);
 
   String _label({required bool coordinates}) {
+    // Under the selected app's name for it (Rouvy's Up for a stored action bar).
+    final actionTitle = displayedControllerAction(inGameAction)?.title;
     final text =
         (inGameAction != null &&
             (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp || runsInSelfHostedBikeControl))
         ? [
-            inGameAction!.title,
+            actionTitle!,
             if (inGameActionValue != null) '$inGameActionValue',
           ].joinToString(separator: ': ')
         : (androidAction != null && core.logic.showLocalControl && core.actionHandler is AndroidActions)
@@ -582,8 +584,8 @@ class KeyPair {
         ? null
         : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
         ? (!coordinates && inGameAction != null)
-              ? inGameAction!.title
-              : 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}${inGameAction != null ? ' (${inGameAction!.title})' : ''}'
+              ? actionTitle!
+              : 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}${inGameAction != null ? ' ($actionTitle)' : ''}'
         : '';
     if (text != null && text.isNotEmpty) {
       return text;
@@ -602,7 +604,7 @@ class KeyPair {
       if (baseKey.trim().isEmpty) {
         return 'Space';
       }
-      return baseKey + (inGameAction != null ? ' (${inGameAction!.title})' : '');
+      return baseKey + (inGameAction != null ? ' ($actionTitle)' : '');
     }
 
     // Format modifiers + key (e.g., "Ctrl+Alt+R")

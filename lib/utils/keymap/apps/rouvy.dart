@@ -31,6 +31,8 @@ class Rouvy extends SupportedApp {
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {
     InGameAction.usePowerUp: InGameAction.kudos, // Y button → Kudos
     InGameAction.rideOnBomb: InGameAction.pause, // Z button → Pause/Resume
+    InGameAction.openActionBar: InGameAction.up, // D-pad up
+    InGameAction.uturn: InGameAction.down, // D-pad down
   };
 
   Rouvy()

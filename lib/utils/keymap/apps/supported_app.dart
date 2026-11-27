@@ -337,3 +337,9 @@ InGameAction? resolveControllerAction(InGameAction? action) {
   final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
   return mapping?.entries.firstOrNullWhere((e) => e.value == action)?.key ?? action;
 }
+
+/// The name a stored controller [action] goes by in the selected app: a button
+/// saved under the raw controller action (Rouvy's `openActionBar`, before the
+/// app renamed it Up) still shows, and is matched, as the renamed one.
+InGameAction? displayedControllerAction(InGameAction? action) =>
+    core.settings.getTrainerApp()?.inGameActionsMapping[action] ?? action;
