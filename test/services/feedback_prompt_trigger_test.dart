@@ -38,6 +38,10 @@ Future<void> _primeEligible(Settings settings, DateTime clock) async {
   await settings.setFeedbackPromptFirstSeenAt(clock.subtract(FeedbackPromptService.minAgeSinceFirstSeen * 2));
 }
 
+/// These tests are about the trigger's wiring, not the ownership gate: every
+/// service here belongs to a rider who owns Base or Pro.
+bool _owner() => true;
+
 void main() {
   setUp(() {
     FeedbackPromptFlow.resetShownThisLaunchForTesting();
@@ -54,6 +58,7 @@ void main() {
     final service = FeedbackPromptService(
       settings: settings,
       trainerConnections: [ValueNotifier(false)],
+      ownsPaidTier: _owner,
       now: () => clock,
     );
     service.start();
@@ -83,6 +88,7 @@ void main() {
     final service = FeedbackPromptService(
       settings: settings,
       trainerConnections: [ValueNotifier(false)],
+      ownsPaidTier: _owner,
       now: () => clock,
     );
     service.start();
@@ -104,7 +110,12 @@ void main() {
     await settings.setFeedbackPromptFirstSeenAt(clock.subtract(FeedbackPromptService.minAgeSinceFirstSeen * 2));
     await settings.setFeedbackSuccessfulSessionCount(FeedbackPromptService.successfulSessionThreshold - 1);
     final trainer = ValueNotifier(false);
-    final service = FeedbackPromptService(settings: settings, trainerConnections: [trainer], now: () => clock);
+    final service = FeedbackPromptService(
+      settings: settings,
+      trainerConnections: [trainer],
+      ownsPaidTier: _owner,
+      now: () => clock,
+    );
     service.start();
     expect(service.shouldShowPrompt.value, isFalse);
 
@@ -135,6 +146,7 @@ void main() {
     final service = FeedbackPromptService(
       settings: settings,
       trainerConnections: [ValueNotifier(false)],
+      ownsPaidTier: _owner,
       now: () => clock,
     );
     service.start();
@@ -157,6 +169,7 @@ void main() {
     final service2 = FeedbackPromptService(
       settings: settings,
       trainerConnections: [ValueNotifier(false)],
+      ownsPaidTier: _owner,
       now: () => clock,
     );
     service2.start();
@@ -181,7 +194,12 @@ void main() {
     await settings.setFeedbackPromptFirstSeenAt(clock.subtract(FeedbackPromptService.minAgeSinceFirstSeen * 2));
     await settings.setFeedbackSuccessfulSessionCount(FeedbackPromptService.successfulSessionThreshold - 1);
     final trainer = ValueNotifier(false);
-    final service = FeedbackPromptService(settings: settings, trainerConnections: [trainer], now: () => clock);
+    final service = FeedbackPromptService(
+      settings: settings,
+      trainerConnections: [trainer],
+      ownsPaidTier: _owner,
+      now: () => clock,
+    );
     service.start();
 
     var shown = 0;
