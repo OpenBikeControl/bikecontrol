@@ -14,13 +14,21 @@
 // to 0 for everyone; nothing here reads the legacy counter or its dismissal
 // marker (`review_dismissed_at_session_count`) — see
 // `FeedbackPromptService`'s doc comment for the full rationale.
+//
+// The sheet is also owners-only: it may only ever reach a rider who bought
+// Base or holds Pro (`ownsPaidTier`). Free riders — on trial or past it —
+// are never asked, so the harness below defaults to an owner and the
+// ownership tests opt out explicitly.
 import 'package:bike_control/services/feedback_prompt_service.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-bool _neverOnTrial() => false;
+/// Default for the test harness: a rider who owns Base or Pro, i.e. the only
+/// kind of rider the prompt may reach at all. Tests that care about the
+/// ownership gate pass their own.
+bool _owner() => true;
 
 void main() {
   late Settings settings;
@@ -45,12 +53,12 @@ void main() {
 
   FeedbackPromptService makeService(
     List<ValueNotifier<bool>> trainers, {
-    bool Function() isOnTrial = _neverOnTrial,
+    bool Function() ownsPaidTier = _owner,
   }) {
     return FeedbackPromptService(
       settings: settings,
       trainerConnections: trainers,
-      isOnTrial: isOnTrial,
+      ownsPaidTier: ownsPaidTier,
       now: now,
     );
   }
@@ -232,27 +240,44 @@ void main() {
       service.dispose();
     });
 
-    test('trial gate: not eligible while on trial', () async {
+    test('ownership gate: not eligible for a rider who owns neither Base nor Pro', () async {
       await primeGatesExceptCount(successfulSessions: FeedbackPromptService.successfulSessionThreshold);
-      final service = makeService([ValueNotifier(false)], isOnTrial: () => true);
+      final service = makeService([ValueNotifier(false)], ownsPaidTier: () => false);
       service.start();
       expect(service.shouldShowPrompt.value, isFalse);
       service.dispose();
     });
 
-    test('trial gate: eligible once the trial ends', () async {
+    test('ownership gate: a trial rider is not an owner, and an expired trial does not make one', () async {
+      // Both ends of the unpaid lifecycle resolve to the same answer: the
+      // gate asks "did they buy Base or Pro", not "is the trial over". A
+      // rider who ran the trial out and fell back to the daily command cap
+      // stays excluded for as long as they never buy.
+      await primeGatesExceptCount(successfulSessions: FeedbackPromptService.successfulSessionThreshold * 3);
+      final duringTrial = makeService([ValueNotifier(false)], ownsPaidTier: () => false);
+      duringTrial.start();
+      expect(duringTrial.shouldShowPrompt.value, isFalse, reason: 'still on trial: nothing bought yet');
+      duringTrial.dispose();
+
+      final afterTrial = makeService([ValueNotifier(false)], ownsPaidTier: () => false);
+      afterTrial.start();
+      expect(afterTrial.shouldShowPrompt.value, isFalse, reason: 'trial expired without a purchase: still not an owner');
+      afterTrial.dispose();
+    });
+
+    test('ownership gate: becomes eligible the moment the rider buys', () async {
       await primeGatesExceptCount(successfulSessions: FeedbackPromptService.successfulSessionThreshold);
-      var onTrial = true;
+      var owns = false;
       final trainer = ValueNotifier(false);
-      final service = makeService([trainer], isOnTrial: () => onTrial);
+      final service = makeService([trainer], ownsPaidTier: () => owns);
       service.start();
       expect(service.shouldShowPrompt.value, isFalse);
 
-      onTrial = false;
+      owns = true;
       // Nothing changed on the trainer side, so nothing re-triggers a
-      // refresh by itself — flip a connection like a real trial-expiry +
+      // refresh by itself — flip a connection like a real purchase +
       // reconnect would, ending a (too-short, here) session to force a
-      // re-check. This exercises the getter being re-read, not a new
+      // re-check. This exercises the predicate being re-read, not a new
       // qualifying session.
       trainer.value = true;
       await Future.value();
@@ -260,6 +285,16 @@ void main() {
       await Future.value();
 
       expect(service.shouldShowPrompt.value, isTrue);
+      service.dispose();
+    });
+
+    test('ownership gate: an owner who never rides is still held back by the session gates', () async {
+      // The gate only ever subtracts. Owning Base or Pro is a precondition,
+      // not a shortcut past the usage threshold.
+      await primeGatesExceptCount(successfulSessions: FeedbackPromptService.successfulSessionThreshold - 1);
+      final service = makeService([ValueNotifier(false)]);
+      service.start();
+      expect(service.shouldShowPrompt.value, isFalse);
       service.dispose();
     });
 

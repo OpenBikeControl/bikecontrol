@@ -27,6 +27,16 @@ import 'package:flutter/foundation.dart';
 /// moment is the caller's job, not this service's — see
 /// `FeedbackPromptTrigger` / `OverviewPage`.
 ///
+/// ## Owners only
+/// The sheet is only ever shown to a rider who owns a paid tier — Base
+/// bought outright, or an active Pro entitlement (see [ownsPaidTier]). It is
+/// never shown to a free rider, whether their trial is still running or long
+/// since expired. That subsumes the old trial-only gate this parameter
+/// replaced: somebody on trial hasn't bought anything, so they fail the same
+/// check. [ownsPaidTier] has no default on purpose — every construction site
+/// has to say which riders it speaks for, so the gate can't be lost by
+/// omission.
+///
 /// ## Rebase from the old review banner
 /// This replaces a connection-COUNTING scheme that bumped a counter on the
 /// first trainer connection of a launch and fired as soon as it (and a few
@@ -71,7 +81,10 @@ class FeedbackPromptService {
 
   final Settings settings;
   final List<ValueListenable<bool>> trainerConnections;
-  final bool Function() isOnTrial;
+  /// Whether the rider owns Base or Pro. Read fresh on every eligibility
+  /// check rather than captured once, so a purchase mid-launch takes effect
+  /// at the next re-check.
+  final bool Function() ownsPaidTier;
 
   /// Injected clock so tests can control elapsed time deterministically.
   /// Never call `DateTime.now()` directly in this file — go through [now].
@@ -88,11 +101,9 @@ class FeedbackPromptService {
   FeedbackPromptService({
     required this.settings,
     required this.trainerConnections,
-    this.isOnTrial = _alwaysFalse,
+    required this.ownsPaidTier,
     this.now = DateTime.now,
   });
-
-  static bool _alwaysFalse() => false;
 
   void start() {
     for (final notifier in trainerConnections) {
@@ -180,7 +191,7 @@ class FeedbackPromptService {
     // Never mid-ride. The trigger/OverviewPage layer adds "is the overview
     // on screen" on top of this.
     if (_sessionActive) return false;
-    if (isOnTrial()) return false;
+    if (!ownsPaidTier()) return false;
     if (settings.getReviewCompleted()) return false;
 
     final firstSeenAt = settings.getFeedbackPromptFirstSeenAt();

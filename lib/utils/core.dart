@@ -212,9 +212,14 @@ class Core {
     return _feedbackPromptService ??= FeedbackPromptService(
       settings: settings,
       trainerConnections: logic.trainerConnections.map((t) => t.isConnected).toList(),
-      isOnTrial: () {
+      // Owners only: Base bought outright (`isPurchased`, which the Linux
+      // build sets because Base is free there) or an active Pro entitlement
+      // (`isProEnabled`, which covers Pro forever as well as the
+      // subscriptions). Free riders — mid-trial or long past it — are never
+      // asked for feedback or a rating.
+      ownsPaidTier: () {
         final iap = IAPManager.instance;
-        return !iap.isProEnabled && !iap.isPurchased.value && !iap.isTrialExpired;
+        return iap.isPurchased.value || iap.isProEnabled;
       },
     );
   }

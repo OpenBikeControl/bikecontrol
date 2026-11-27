@@ -21,7 +21,11 @@ Future<FeedbackPromptService> _service() async {
   SharedPreferences.setMockInitialValues({});
   final settings = Settings();
   settings.prefs = await SharedPreferences.getInstance();
-  return FeedbackPromptService(settings: settings, trainerConnections: [ValueNotifier(false)]);
+  return FeedbackPromptService(
+    settings: settings,
+    trainerConnections: [ValueNotifier(false)],
+    ownsPaidTier: () => true,
+  );
 }
 
 Future<BuildContext> _pumpHostAndGetContext(WidgetTester tester) async {

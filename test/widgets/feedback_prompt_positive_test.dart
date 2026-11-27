@@ -32,7 +32,13 @@ Future<FeedbackPromptService> _service() async {
   SharedPreferences.setMockInitialValues({});
   final settings = Settings();
   settings.prefs = await SharedPreferences.getInstance();
-  return FeedbackPromptService(settings: settings, trainerConnections: [ValueNotifier(false)]);
+  // These tests drive the sheet's UI directly; the service's eligibility
+  // gates don't come into it, so this stands for a rider who owns Base/Pro.
+  return FeedbackPromptService(
+    settings: settings,
+    trainerConnections: [ValueNotifier(false)],
+    ownsPaidTier: () => true,
+  );
 }
 
 Future<void> _pump(
