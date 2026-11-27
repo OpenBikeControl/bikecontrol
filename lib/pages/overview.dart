@@ -17,6 +17,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/rate_app.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/feedback_prompt/feedback_prompt_flow.dart';
@@ -101,14 +102,13 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
   void initState() {
     super.initState();
 
+    // Straight to the store's own rating sheet — no sheet of ours in front
+    // of it. The feedback flow (`showFeedbackPromptFlow`) is still there,
+    // but only where a rider goes looking for it (the menu's Feedback
+    // entry).
     _feedbackPromptTrigger = FeedbackPromptTrigger(
       service: core.feedbackPromptService,
-      onShow: () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          showFeedbackPromptFlow(context, service: core.feedbackPromptService);
-        });
-      },
+      onShow: () => unawaited(showAutomaticRatingPrompt(core.feedbackPromptService)),
     )..checkInitial();
 
     // keep screen on - this is required for iOS to keep the bluetooth connection alive
