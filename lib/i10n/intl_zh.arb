@@ -4398,5 +4398,21 @@
   "onboardingDealCodeCopied": "代码已复制",
   "rideOverlayOfferOverOtherApps": "在任何应用上方显示档位",
   "onboardingOverlayOverOtherAppsTitle": "使用手机时也能看到档位",
-  "onboardingOverlayOverOtherAppsNote": "{app} 运行在另一台设备上，因此这台手机可以自由使用。悬浮窗会在你打开的任何应用上方显示你的档位。"
+  "onboardingOverlayOverOtherAppsNote": "{app} 运行在另一台设备上，因此这台手机可以自由使用。悬浮窗会在你打开的任何应用上方显示你的档位。",
+  "presetRealBike": "像我的车",
+  "presetRealBikeHint": "输入你的牙盘和飞轮",
+  "realBikeSheetIntro": "挡位来自你真实的牙盘和飞轮齿数。有两个牙盘时，虚拟前拨会在两者之间切换。",
+  "realBikeCrankset": "牙盘",
+  "realBikeCassette": "飞轮",
+  "realBikeCustom": "自定义",
+  "realBikeLargeRing": "大牙盘",
+  "realBikeSmallRing": "小牙盘",
+  "realBikeSingleRing": "牙盘",
+  "realBikeTwoRings": "双牙盘",
+  "realBikeSpeeds": "{count} 速",
+  "realBikeCustomCogsLabel": "飞轮齿数，用短横线或逗号分隔",
+  "realBikeCogsInvalid": "请输入 1–30 个不同的飞轮，齿数 9–52。",
+  "realBikeSummary": "{gears} 个挡位 · {range}",
+  "realBikeSummaryDouble": "每个牙盘 {gears} 个挡位 · 小 {small} · 大 {large}",
+  "realBikeApply": "使用这些挡位"
 }

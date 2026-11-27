@@ -1,8 +1,10 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/models/bike_drivetrain.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
+import 'package:bike_control/pages/proxy_device_details/real_bike_preset_sheet.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/window_size.dart';
@@ -46,12 +48,24 @@ bool _ratiosMatch(List<double> a, List<double> b, {double tol = 0.001}) {
 }
 
 /// The preset [ratios] match, if any — what "Per-gear ratios" says the curve is.
-GearRatioPreset? matchingGearRatioPreset(BuildContext context, List<double> ratios) {
+/// [drivetrain] is the rider's "Like my bike" crank and cassette, which match
+/// only while the curve is still the one they made.
+GearRatioPreset? matchingGearRatioPreset(BuildContext context, List<double> ratios, {BikeDrivetrain? drivetrain}) {
   for (final preset in gearRatioPresets(context, ratios.length)) {
     if (_ratiosMatch(preset.values, ratios)) return preset;
   }
+  if (drivetrain != null && drivetrain.matches(ratios)) {
+    return GearRatioPreset(
+      label: AppLocalizations.of(context).presetRealBike,
+      range: realBikeDrivetrainLabel(drivetrain),
+      values: List<double>.unmodifiable(drivetrain.ratios),
+    );
+  }
   return null;
 }
+
+/// "50/34 · 11-34".
+String realBikeDrivetrainLabel(BikeDrivetrain d) => '${d.chainringLabel} · ${d.cassetteRangeLabel}';
 
 /// Opens the per-gear steppers: a side panel on the right in a wide window,
 /// where the settings they belong to stay in view; a pushed page on a phone.
@@ -100,16 +114,55 @@ class GearRatioPresetChips extends StatelessWidget {
         ValueListenableBuilder<List<double>>(
           valueListenable: definition.gearRatios,
           builder: (context, current, _) {
-            return Row(
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 8,
-              children: gearRatioPresets(
-                context,
-                definition.maxGear,
-              ).map((p) => Expanded(child: _presetButton(context, p, current))).toList(),
+              children: [
+                Row(
+                  spacing: 8,
+                  children: gearRatioPresets(
+                    context,
+                    definition.maxGear,
+                  ).map((p) => Expanded(child: _presetButton(context, p, current))).toList(),
+                ),
+                _realBikeButton(context, current),
+              ],
             );
           },
         ),
       ],
+    );
+  }
+
+  /// "Like my bike": no fixed curve, so it sits under the four chips and
+  /// opens a sheet for the crank and cassette instead of applying in one tap.
+  Widget _realBikeButton(BuildContext context, List<double> current) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final drivetrain = device.activeShiftingConfig.bikeDrivetrain;
+    final active = drivetrain != null && drivetrain.matches(current);
+    final muted = active ? cs.primaryForeground.withValues(alpha: 0.8) : cs.mutedForeground;
+    return Button(
+      key: const ValueKey('preset-real-bike'),
+      style: active ? ButtonStyle.primary(size: ButtonSize.small) : ButtonStyle.outline(size: ButtonSize.small),
+      onPressed: () => showRealBikePresetSheet(context, definition: definition, device: device),
+      leading: const Icon(LucideIcons.bike, size: 16),
+      trailing: Icon(LucideIcons.chevronRight, size: 16, color: muted),
+      alignment: AlignmentDirectional.centerStart,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.presetRealBike,
+            style: context.typography.xSmall.copyWith(fontWeight: active ? FontWeight.w700 : FontWeight.w600),
+          ),
+          Text(
+            drivetrain == null ? l10n.presetRealBikeHint : realBikeDrivetrainLabel(drivetrain),
+            style: context.typography.caption.copyWith(fontWeight: FontWeight.w500, color: muted),
+          ),
+        ],
+      ),
     );
   }
 

@@ -236,6 +236,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
         maxGear: targetMaxGear,
         gradeSmoothing: true,
         clearGearRatios: true,
+        clearBikeDrivetrain: true,
         difficultyPct: FitnessBikeDefinition.defaultDifficultyPct,
       ),
     );

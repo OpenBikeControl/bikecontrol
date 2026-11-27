@@ -3230,5 +3230,21 @@
   "onboardingDealCodeCopied": "Code copié",
   "rideOverlayOfferOverOtherApps": "Ton braquet sur toutes les apps",
   "onboardingOverlayOverOtherAppsTitle": "Utilise ton téléphone, ton braquet reste en vue",
-  "onboardingOverlayOverOtherAppsNote": "{app} tourne sur un autre appareil, ce téléphone est donc libre. La superposition affiche ton braquet par-dessus toute app que tu ouvres ici."
+  "onboardingOverlayOverOtherAppsNote": "{app} tourne sur un autre appareil, ce téléphone est donc libre. La superposition affiche ton braquet par-dessus toute app que tu ouvres ici.",
+  "presetRealBike": "Comme mon vélo",
+  "presetRealBikeHint": "Saisissez votre pédalier et votre cassette",
+  "realBikeSheetIntro": "Les vitesses viennent de vos vrais plateaux et pignons. Avec deux plateaux, le dérailleur avant virtuel passe de l'un à l'autre.",
+  "realBikeCrankset": "PÉDALIER",
+  "realBikeCassette": "CASSETTE",
+  "realBikeCustom": "Personnalisé",
+  "realBikeLargeRing": "Grand plateau",
+  "realBikeSmallRing": "Petit plateau",
+  "realBikeSingleRing": "Plateau",
+  "realBikeTwoRings": "Deux plateaux",
+  "realBikeSpeeds": "{count} vitesses",
+  "realBikeCustomCogsLabel": "Dents des pignons, séparées par des tirets ou des virgules",
+  "realBikeCogsInvalid": "Saisissez de 1 à 30 pignons différents de 9 à 52 dents.",
+  "realBikeSummary": "{gears} vitesses · {range}",
+  "realBikeSummaryDouble": "{gears} vitesses par plateau · petit {small} · grand {large}",
+  "realBikeApply": "Utiliser ces vitesses"
 }

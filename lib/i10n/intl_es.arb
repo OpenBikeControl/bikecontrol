@@ -3230,5 +3230,21 @@
   "onboardingDealCodeCopied": "Código copiado",
   "rideOverlayOfferOverOtherApps": "Tu marcha sobre cualquier app",
   "onboardingOverlayOverOtherAppsTitle": "Usa tu móvil sin perder de vista tu marcha",
-  "onboardingOverlayOverOtherAppsNote": "{app} se ejecuta en otro dispositivo, así que este móvil queda libre. La superposición muestra tu marcha encima de cualquier app que abras aquí."
+  "onboardingOverlayOverOtherAppsNote": "{app} se ejecuta en otro dispositivo, así que este móvil queda libre. La superposición muestra tu marcha encima de cualquier app que abras aquí.",
+  "presetRealBike": "Como mi bici",
+  "presetRealBikeHint": "Introduce tus bielas y tu cassette",
+  "realBikeSheetIntro": "Las marchas salen de tus platos y piñones reales. Con dos platos, el desviador virtual cambia entre ellos.",
+  "realBikeCrankset": "BIELAS",
+  "realBikeCassette": "CASSETTE",
+  "realBikeCustom": "Personalizado",
+  "realBikeLargeRing": "Plato grande",
+  "realBikeSmallRing": "Plato pequeño",
+  "realBikeSingleRing": "Plato",
+  "realBikeTwoRings": "Dos platos",
+  "realBikeSpeeds": "{count} velocidades",
+  "realBikeCustomCogsLabel": "Dientes de los piñones, separados por guiones o comas",
+  "realBikeCogsInvalid": "Introduce de 1 a 30 piñones distintos de 9 a 52 dientes.",
+  "realBikeSummary": "{gears} marchas · {range}",
+  "realBikeSummaryDouble": "{gears} marchas por plato · pequeño {small} · grande {large}",
+  "realBikeApply": "Usar estas marchas"
 }

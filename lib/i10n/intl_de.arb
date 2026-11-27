@@ -3230,5 +3230,21 @@
   "onboardingDealCodeCopied": "Code kopiert",
   "rideOverlayOfferOverOtherApps": "Dein Gang über jeder App",
   "onboardingOverlayOverOtherAppsTitle": "Nutz dein Handy, dein Gang bleibt im Blick",
-  "onboardingOverlayOverOtherAppsNote": "{app} läuft auf einem anderen Gerät, dieses Handy ist also frei. Das Overlay zeigt deinen Gang über jeder App, die du hier öffnest."
+  "onboardingOverlayOverOtherAppsNote": "{app} läuft auf einem anderen Gerät, dieses Handy ist also frei. Das Overlay zeigt deinen Gang über jeder App, die du hier öffnest.",
+  "presetRealBike": "Wie mein Rad",
+  "presetRealBikeHint": "Kurbel und Kassette eingeben",
+  "realBikeSheetIntro": "Die Gänge kommen aus deinen echten Kettenblättern und Ritzeln. Mit zwei Kettenblättern wechselt der virtuelle Umwerfer zwischen ihnen.",
+  "realBikeCrankset": "KURBEL",
+  "realBikeCassette": "KASSETTE",
+  "realBikeCustom": "Eigene",
+  "realBikeLargeRing": "Großes Kettenblatt",
+  "realBikeSmallRing": "Kleines Kettenblatt",
+  "realBikeSingleRing": "Kettenblatt",
+  "realBikeTwoRings": "Zwei Kettenblätter",
+  "realBikeSpeeds": "{count}-fach",
+  "realBikeCustomCogsLabel": "Zähne der Ritzel, getrennt durch Bindestrich oder Komma",
+  "realBikeCogsInvalid": "Gib 1–30 verschiedene Ritzel mit 9–52 Zähnen ein.",
+  "realBikeSummary": "{gears} Gänge · {range}",
+  "realBikeSummaryDouble": "{gears} Gänge je Kettenblatt · klein {small} · groß {large}",
+  "realBikeApply": "Gänge übernehmen"
 }

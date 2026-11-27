@@ -3230,5 +3230,21 @@
   "onboardingDealCodeCopied": "Kod skopiowany",
   "rideOverlayOfferOverOtherApps": "Bieg nad każdą aplikacją",
   "onboardingOverlayOverOtherAppsTitle": "Korzystaj z telefonu, bieg zostaje na widoku",
-  "onboardingOverlayOverOtherAppsNote": "{app} działa na innym urządzeniu, więc ten telefon jest wolny. Nakładka pokazuje Twój bieg nad każdą aplikacją, którą tu otworzysz."
+  "onboardingOverlayOverOtherAppsNote": "{app} działa na innym urządzeniu, więc ten telefon jest wolny. Nakładka pokazuje Twój bieg nad każdą aplikacją, którą tu otworzysz.",
+  "presetRealBike": "Jak mój rower",
+  "presetRealBikeHint": "Wpisz korbę i kasetę",
+  "realBikeSheetIntro": "Biegi powstają z twoich prawdziwych tarcz i zębatek. Przy dwóch tarczach wirtualna przerzutka przednia przełącza się między nimi.",
+  "realBikeCrankset": "KORBA",
+  "realBikeCassette": "KASETA",
+  "realBikeCustom": "Własne",
+  "realBikeLargeRing": "Duża tarcza",
+  "realBikeSmallRing": "Mała tarcza",
+  "realBikeSingleRing": "Tarcza",
+  "realBikeTwoRings": "Dwie tarcze",
+  "realBikeSpeeds": "{count} rzędów",
+  "realBikeCustomCogsLabel": "Zęby zębatek, oddzielone myślnikami lub przecinkami",
+  "realBikeCogsInvalid": "Wpisz od 1 do 30 różnych zębatek po 9–52 zęby.",
+  "realBikeSummary": "Biegi: {gears} · {range}",
+  "realBikeSummaryDouble": "Biegi na tarczę: {gears} · mała {small} · duża {large}",
+  "realBikeApply": "Użyj tych biegów"
 }

@@ -1,3 +1,4 @@
+import 'package:bike_control/models/bike_drivetrain.dart';
 import 'package:bike_control/utils/ble_device_ids.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:flutter/foundation.dart' show listEquals;
@@ -47,6 +48,11 @@ class ShiftingConfig {
 
   double get realChainRatio => realChainringTeeth / realCogTeeth;
 
+  /// The crank and cassette the "Like my bike" preset last made the gears
+  /// from. Kept after the gears are edited: the preset only counts as active
+  /// while [gearRatios] still match it ([BikeDrivetrain.matches]).
+  final BikeDrivetrain? bikeDrivetrain;
+
   /// Whether the rider set where the real chain sits, rather than leaving the
   /// default 34/17. A chain they set to another 2:1 (36/18) still counts.
   bool get hasRealChain => realChainringTeeth != realChainringDefault || realCogTeeth != realCogDefault;
@@ -81,6 +87,7 @@ class ShiftingConfig {
     this.largeChainringTeeth = largeChainringDefault,
     this.realChainringTeeth = realChainringDefault,
     this.realCogTeeth = realCogDefault,
+    this.bikeDrivetrain,
     this.difficultyPct = FitnessBikeDefinition.defaultDifficultyPct,
     this.ergStartSource = ErgPowerStepping.defaultStartSource,
     this.ergStepW = ErgPowerStepping.defaultStepW,
@@ -151,6 +158,7 @@ class ShiftingConfig {
       realChainringTeeth: ((json['realChainringTeeth'] as num?)?.toInt() ?? realChainringDefault)
           .clamp(chainringTeethMin, chainringTeethMax),
       realCogTeeth: ((json['realCogTeeth'] as num?)?.toInt() ?? realCogDefault).clamp(realCogTeethMin, realCogTeethMax),
+      bikeDrivetrain: BikeDrivetrain.fromJson(json['bikeDrivetrain']),
       difficultyPct: ((json['difficultyPct'] as num?)?.toInt() ?? FitnessBikeDefinition.defaultDifficultyPct)
           .clamp(FitnessBikeDefinition.minDifficultyPct, FitnessBikeDefinition.maxDifficultyPct),
       ergStartSource: ErgStartSource.values.firstWhere(
@@ -178,6 +186,7 @@ class ShiftingConfig {
         'largeChainringTeeth': largeChainringTeeth,
         'realChainringTeeth': realChainringTeeth,
         'realCogTeeth': realCogTeeth,
+        if (bikeDrivetrain != null) 'bikeDrivetrain': bikeDrivetrain!.toJson(),
         'difficultyPct': difficultyPct,
         'ergStart': ergStartSource.name,
         'ergStepW': ergStepW,
@@ -201,6 +210,8 @@ class ShiftingConfig {
     int? largeChainringTeeth,
     int? realChainringTeeth,
     int? realCogTeeth,
+    BikeDrivetrain? bikeDrivetrain,
+    bool clearBikeDrivetrain = false,
     int? difficultyPct,
     ErgStartSource? ergStartSource,
     int? ergStepW,
@@ -229,6 +240,7 @@ class ShiftingConfig {
       largeChainringTeeth: largeChainringTeeth ?? this.largeChainringTeeth,
       realChainringTeeth: realChainringTeeth ?? this.realChainringTeeth,
       realCogTeeth: realCogTeeth ?? this.realCogTeeth,
+      bikeDrivetrain: clearBikeDrivetrain ? null : (bikeDrivetrain ?? this.bikeDrivetrain),
       difficultyPct: difficultyPct ?? this.difficultyPct,
       ergStartSource: ergStartSource ?? this.ergStartSource,
       ergStepW: ergStepW ?? this.ergStepW,
@@ -255,6 +267,7 @@ class ShiftingConfig {
           largeChainringTeeth == other.largeChainringTeeth &&
           realChainringTeeth == other.realChainringTeeth &&
           realCogTeeth == other.realCogTeeth &&
+          bikeDrivetrain == other.bikeDrivetrain &&
           difficultyPct == other.difficultyPct &&
           ergStartSource == other.ergStartSource &&
           ergStepW == other.ergStepW &&
@@ -277,6 +290,7 @@ class ShiftingConfig {
         largeChainringTeeth,
         realChainringTeeth,
         realCogTeeth,
+        bikeDrivetrain,
         difficultyPct,
         ergStartSource,
         ergStepW,
