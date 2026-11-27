@@ -1821,6 +1821,7 @@
   },
   "wheeltopClaimedByDerailleurHint": "手变很可能已被其后拨占用。请关闭后拨电源或让它休眠，然后在扫描时按一个手变按键。",
   "bleSensorConnectGuidance": "传感器可能正被其他应用或设备使用。请改为在骑行软件中直接配对，或点按「重新连接」再试。",
+  "trainerConnectGuidance": "骑行台可能正被你的骑行软件或其他设备使用。请在那里断开连接，或点按「重新连接」再试。",
   "unableToConnectToDeviceTimeout": "无法连接到 {device}：超时",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

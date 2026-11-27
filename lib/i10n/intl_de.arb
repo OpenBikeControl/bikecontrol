@@ -1142,6 +1142,7 @@
   "connectionGaveUpAfterAttempts": "Verbindung zu {device} nach mehreren Versuchen fehlgeschlagen.",
   "wheeltopClaimedByDerailleurHint": "Der Schalter wird vermutlich von seinem Schaltwerk belegt. Schalte das Schaltwerk aus oder lass es einschlafen und drücke dann während der Suche eine Taste am Schalter.",
   "bleSensorConnectGuidance": "Der Sensor wird eventuell von einer anderen App oder einem anderen Gerät verwendet. Kopple ihn stattdessen direkt in deiner Trainings-App oder tippe auf „Erneut verbinden“, um es noch einmal zu versuchen.",
+  "trainerConnectGuidance": "Der Trainer wird eventuell von deiner Trainings-App oder einem anderen Gerät verwendet. Trenne ihn dort oder tippe auf „Erneut verbinden“, um es noch einmal zu versuchen.",
   "unableToConnectToDeviceTimeout": "Verbindung zu {device} nicht möglich: Zeitüberschreitung",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

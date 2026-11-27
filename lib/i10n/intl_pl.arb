@@ -1131,6 +1131,7 @@
   "connectionGaveUpAfterAttempts": "Nie udało się połączyć z {device} po kilku próbach.",
   "wheeltopClaimedByDerailleurHint": "Manetka jest prawdopodobnie zajęta przez tylną przerzutkę. Wyłącz przerzutkę lub pozwól jej przejść w stan uśpienia, a następnie naciśnij przycisk manetki podczas skanowania.",
   "bleSensorConnectGuidance": "Czujnik może być używany przez inną aplikację lub urządzenie. Sparuj go bezpośrednio w aplikacji treningowej albo dotknij „Połącz ponownie”, aby spróbować jeszcze raz.",
+  "trainerConnectGuidance": "Trenażer może być używany przez Twoją aplikację treningową lub inne urządzenie. Rozłącz go tam albo dotknij „Połącz ponownie”, aby spróbować jeszcze raz.",
   "unableToConnectToDeviceTimeout": "Nie można połączyć z {device}: Przekroczono limit czasu",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

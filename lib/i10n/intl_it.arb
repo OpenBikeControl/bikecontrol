@@ -1131,6 +1131,7 @@
   "connectionGaveUpAfterAttempts": "Impossibile connettersi a {device} dopo diversi tentativi.",
   "wheeltopClaimedByDerailleurHint": "Il comando è probabilmente occupato dal suo deragliatore posteriore. Spegni il deragliatore o lascialo andare in standby, poi premi un pulsante del comando durante la ricerca.",
   "bleSensorConnectGuidance": "Il sensore potrebbe essere in uso da un'altra app o da un altro dispositivo. Abbinalo direttamente nella tua app di allenamento oppure tocca «Riconnetti» per riprovare.",
+  "trainerConnectGuidance": "Il rullo potrebbe essere in uso dalla tua app di allenamento o da un altro dispositivo. Scollegalo lì oppure tocca «Riconnetti» per riprovare.",
   "unableToConnectToDeviceTimeout": "Impossibile connettersi a {device}: timeout",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

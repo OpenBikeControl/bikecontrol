@@ -1131,6 +1131,7 @@
   "connectionGaveUpAfterAttempts": "Impossible de se connecter à {device} après plusieurs tentatives.",
   "wheeltopClaimedByDerailleurHint": "La manette est probablement accaparée par son dérailleur arrière. Éteignez le dérailleur ou laissez-le se mettre en veille, puis appuyez sur un bouton de la manette pendant la recherche.",
   "bleSensorConnectGuidance": "Le capteur est peut-être utilisé par une autre app ou un autre appareil. Associez-le plutôt directement dans votre app d'entraînement, ou appuyez sur « Reconnecter » pour réessayer.",
+  "trainerConnectGuidance": "Le home trainer est peut-être utilisé par votre app d'entraînement ou un autre appareil. Déconnectez-le là-bas, ou appuyez sur « Reconnecter » pour réessayer.",
   "unableToConnectToDeviceTimeout": "Impossible de se connecter à {device} : délai dépassé",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

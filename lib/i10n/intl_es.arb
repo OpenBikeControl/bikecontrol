@@ -1131,6 +1131,7 @@
   "connectionGaveUpAfterAttempts": "No se pudo conectar con {device} tras varios intentos.",
   "wheeltopClaimedByDerailleurHint": "Probablemente la maneta está ocupada por su desviador trasero. Apaga el desviador o deja que entre en reposo y, durante la búsqueda, pulsa un botón de la maneta.",
   "bleSensorConnectGuidance": "Es posible que otra app u otro dispositivo esté usando el sensor. Vincúlalo directamente en tu app de entrenamiento o toca «Reconectar» para volver a intentarlo.",
+  "trainerConnectGuidance": "Es posible que tu app de entrenamiento u otro dispositivo esté usando el rodillo. Desconéctalo allí o toca «Reconectar» para volver a intentarlo.",
   "unableToConnectToDeviceTimeout": "No se pudo conectar a {device}: Tiempo de espera agotado",
   "@unableToConnectToDeviceTimeout": {
     "placeholders": {

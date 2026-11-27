@@ -1397,6 +1397,19 @@ class ProxyDevice extends BluetoothDevice {
   @override
   bool get shouldAutoConnect => core.settings.getAutoConnect(trainerKey) && !twinHoldsTrainer;
 
+  /// A trainer the trainer app already holds (Windows: service discovery
+  /// fails with AccessDenied while MyWhoosh is connected) fails every
+  /// connect, and each failure re-adds it on the next advertisement. Without
+  /// a cap that looped about once a second, with two toasts per round. Gives
+  /// up after three, then retries quietly after the cooldown; the rider's
+  /// auto-connect choice stays, and Reconnect or picking it by hand bypasses
+  /// the cap.
+  @override
+  int get maxAutoConnectAttempts => 3;
+
+  @override
+  String? get connectionGuidance => AppLocalizations.current.trainerConnectGuidance;
+
   /// True while this entry holds the trainer: the upstream link is up, the
   /// bridge is running for it, or a connect is in flight.
   bool get isConnectedOrConnecting => isConnected || isStarting.value || isBridged;
