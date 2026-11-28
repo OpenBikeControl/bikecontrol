@@ -2,6 +2,7 @@
 Nouveau : l'app Wahoo comme app d'entraînement (Pro)
 Nouveau : overlay des vitesses avec les apps Bluetooth comme Grimpa (Pro)
 Nouveau : neuf apps de plus via OpenBikeControl, dont PedalCraft, Sueur et SaddleOut
+Nouveau : verrouiller les Commandes de l'entraîneur en paysage
 Corrigé :
 • « Fermer » dans la notification retire l'overlay
 • Assignations gardées au redémarrage

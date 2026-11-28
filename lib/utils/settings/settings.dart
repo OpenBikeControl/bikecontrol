@@ -952,6 +952,12 @@ class Settings {
     }
   }
 
+  /// Whether the companion page holds itself in landscape on a phone, for a
+  /// mount that only fits the phone sideways.
+  bool getCompanionForceLandscape() => prefs.getBool('companion_force_landscape') ?? false;
+
+  Future<void> setCompanionForceLandscape(bool value) => prefs.setBool('companion_force_landscape', value);
+
   /// WHEELTOP keepalive experiment (see WheeltopProbe): tries reply
   /// candidates to the TX pod's status frame, one per reconnect. On by
   /// default — TX shifters are unusable without it, and the pod drops too

@@ -4374,6 +4374,8 @@
   "companionResetLayoutBody": "恢复为包含所有按钮的骑行模式。此方向上的更改将丢失。",
   "companionFullScreen": "全屏",
   "companionExitFullScreen": "退出全屏",
+  "companionLockLandscape": "锁定为横屏",
+  "companionUnlockLandscape": "重新允许竖屏",
   "companionEditHint": "拖动图块可移动，拖动其角可调整大小。",
   "companionAddButtons": "按钮",
   "companionAddRideData": "骑行数据",

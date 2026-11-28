@@ -3200,6 +3200,8 @@
   "companionResetLayoutBody": "Vuelve al modo de rodaje con todos los botones. Se pierden tus cambios para esta orientación.",
   "companionFullScreen": "Pantalla completa",
   "companionExitFullScreen": "Salir de pantalla completa",
+  "companionLockLandscape": "Fijar en horizontal",
+  "companionUnlockLandscape": "Permitir vertical de nuevo",
   "companionEditHint": "Arrastra un mosaico para moverlo y su esquina para cambiar su tamaño.",
   "companionAddButtons": "Botones",
   "companionAddRideData": "Datos de la sesión",

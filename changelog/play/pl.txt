@@ -2,6 +2,7 @@
 Nowość: aplikacja Wahoo jako aplikacja treningowa (Pro)
 Nowość: nakładka z biegami z aplikacjami Bluetooth jak Grimpa (Pro)
 Nowość: dziewięć kolejnych aplikacji przez OpenBikeControl, m.in. PedalCraft, Sueur i SaddleOut
+Nowość: blokada Sterowania trenażerem w poziomie
 Poprawki:
 • „Zamknij” w powiadomieniu usuwa nakładkę
 • Własne przypisania po restarcie

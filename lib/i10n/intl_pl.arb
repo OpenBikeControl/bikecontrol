@@ -3200,6 +3200,8 @@
   "companionResetLayoutBody": "Powrót do trybu jazdy ze wszystkimi przyciskami. Zmiany dla tej orientacji zostaną utracone.",
   "companionFullScreen": "Pełny ekran",
   "companionExitFullScreen": "Zamknij pełny ekran",
+  "companionLockLandscape": "Zablokuj w poziomie",
+  "companionUnlockLandscape": "Zezwól ponownie na pion",
   "companionEditHint": "Przeciągnij kafelek, aby go przesunąć, a jego róg, aby zmienić rozmiar.",
   "companionAddButtons": "Przyciski",
   "companionAddRideData": "Dane jazdy",

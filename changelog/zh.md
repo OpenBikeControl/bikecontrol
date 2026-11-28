@@ -3,6 +3,7 @@
 - (Pro) 现在可以选择 Wahoo App 作为骑行软件：在安卓设备或 Windows 电脑上运行 BikeControl，它会在 Wahoo App 中作为蓝牙智能骑行台出现，并负责虚拟变速。
 - (Pro) Android 搭配仅支持蓝牙的训练应用（如 Grimpa）：骑行页和设置流程现在会提供档位悬浮窗。该应用运行在另一台设备上，你可以用手机做其他事，同时仍能看到档位。
 - (Base) PedalCraft、suffer.online、Kardiacs、Sueur、TrainerKit、Pedal Mania、Warp、hupser 和 SaddleOut 现已通过 OpenBikeControl 获得官方支持。
+- (Base) iPhone / Android：骑行台控制（屏幕上的大按钮）现在可以锁定为横屏，即使系统的旋转锁定已开启。适合手机只能横放在支架上的情况，例如插着充电线时。
 
 **Fixes**:
 - (Base) Android：点击 BikeControl 通知中的“关闭”现在也会移除档位悬浮窗。此前 BikeControl 退出后悬浮窗仍留在屏幕上。

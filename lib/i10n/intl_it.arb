@@ -3200,6 +3200,8 @@
   "companionResetLayoutBody": "Torna alla modalità corsa con tutti i pulsanti. Le modifiche per questo orientamento andranno perse.",
   "companionFullScreen": "Schermo intero",
   "companionExitFullScreen": "Esci da schermo intero",
+  "companionLockLandscape": "Blocca in orizzontale",
+  "companionUnlockLandscape": "Consenti di nuovo verticale",
   "companionEditHint": "Trascina un riquadro per spostarlo e il suo angolo per ridimensionarlo.",
   "companionAddButtons": "Pulsanti",
   "companionAddRideData": "Dati di pedalata",
