@@ -3200,6 +3200,8 @@
   "companionResetLayoutBody": "Retour au mode course avec tous les boutons. Vos modifications pour cette orientation seront perdues.",
   "companionFullScreen": "Plein écran",
   "companionExitFullScreen": "Quitter le plein écran",
+  "companionLockLandscape": "Verrouiller en paysage",
+  "companionUnlockLandscape": "Autoriser à nouveau le portrait",
   "companionEditHint": "Faites glisser une tuile pour la déplacer, et son coin pour la redimensionner.",
   "companionAddButtons": "Boutons",
   "companionAddRideData": "Données de sortie",

@@ -21,6 +21,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -108,6 +109,12 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   late bool _fullScreen = widget.startFullScreen;
   bool _editing = false;
 
+  /// Holds the page in landscape on a phone, for a mount that only fits it
+  /// sideways; the system's rotation lock doesn't keep it upright then.
+  late bool _forceLandscape = _canLockOrientation && core.settings.getCompanionForceLandscape();
+
+  static bool get _canLockOrientation => HostPlatform.isAndroid || HostPlatform.isIOS;
+
   /// The rider's own layout per orientation (key: landscape); absent while
   /// they haven't changed it.
   final Map<bool, CompanionLayout?> _saved = {};
@@ -131,11 +138,13 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       if (mounted) setState(() {});
     });
     if (_fullScreen) _applySystemUi(true);
+    if (_forceLandscape) _applyOrientation(true);
   }
 
   @override
   void dispose() {
     if (_fullScreen) _applySystemUi(false);
+    if (_forceLandscape) _applyOrientation(false);
     _connectionSub?.cancel();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -152,6 +161,41 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           .catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion full screen')),
     );
   }
+
+  /// Landscape only while [landscape], else every orientation again.
+  void _applyOrientation(bool landscape) {
+    unawaited(
+      SystemChrome.setPreferredOrientations(
+        landscape
+            ? const [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]
+            : const [
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.portraitDown,
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.landscapeRight,
+              ],
+      ).catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion landscape lock')),
+    );
+  }
+
+  void _toggleForceLandscape() {
+    final value = !_forceLandscape;
+    _applyOrientation(value);
+    setState(() => _forceLandscape = value);
+    unawaited(
+      core.settings
+          .setCompanionForceLandscape(value)
+          .catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion landscape lock')),
+    );
+  }
+
+  Widget _landscapeToggle(AppLocalizations l, {required double iconSize}) => BkIconButton(
+    key: const ValueKey('companion-landscape'),
+    variance: _forceLandscape ? ButtonVariance.secondary : ButtonVariance.ghost,
+    icon: Icon(LucideIcons.rotateCwSquare, size: iconSize),
+    label: _forceLandscape ? l.companionUnlockLandscape : l.companionLockLandscape,
+    onPressed: _toggleForceLandscape,
+  );
 
   void _setFullScreen(bool value) {
     if (value == _fullScreen) return;
@@ -499,11 +543,17 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               end: 4,
               child: Opacity(
                 opacity: 0.8,
-                child: BkIconButton.ghost(
-                  key: const ValueKey('companion-exit-full-screen'),
-                  icon: const Icon(LucideIcons.minimize2, size: 20),
-                  label: l.companionExitFullScreen,
-                  onPressed: () => _setFullScreen(false),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_canLockOrientation) _landscapeToggle(l, iconSize: 20),
+                    BkIconButton.ghost(
+                      key: const ValueKey('companion-exit-full-screen'),
+                      icon: const Icon(LucideIcons.minimize2, size: 20),
+                      label: l.companionExitFullScreen,
+                      onPressed: () => _setFullScreen(false),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -541,6 +591,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                     label: l.companionEditLayout,
                     onPressed: () => setState(() => _editing = true),
                   ),
+                  if (_canLockOrientation) _landscapeToggle(l, iconSize: 22),
                   BkIconButton.ghost(
                     key: const ValueKey('companion-full-screen'),
                     icon: const Icon(LucideIcons.maximize2, size: 22),

@@ -3,6 +3,7 @@
 - (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: con BikeControl en un dispositivo Android o un PC con Windows, aparece en la app Wahoo como rodillo inteligente Bluetooth y se encarga del cambio virtual.
 - (Pro) Android con una app de entrenamiento solo Bluetooth como Grimpa: la pestaña Rodar y la configuración ahora ofrecen la superposición de marcha. La app se ejecuta en otro dispositivo, así que puedes usar el móvil para lo que quieras y seguir viendo tu marcha encima.
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser y SaddleOut ahora son compatibles oficialmente mediante OpenBikeControl.
+- (Base) iPhone / Android: los Controles de entrenamiento (los botones grandes en pantalla) ahora se pueden fijar en horizontal, incluso con el bloqueo de rotación del sistema activado. Útil cuando tu móvil solo cabe de lado en el soporte, p. ej. con el cable de carga conectado.
 
 **Fixes**:
 - (Base) Android: «Cerrar» en la notificación de BikeControl ahora también quita la superposición de marcha. Antes, la superposición seguía en pantalla después de cerrar BikeControl.

@@ -3,6 +3,7 @@
 - (Pro) L'app Wahoo ora è selezionabile come app di allenamento: con BikeControl su un dispositivo Android o un PC Windows, compare nell'app Wahoo come rullo smart Bluetooth e gestisce il cambio virtuale.
 - (Pro) Android con un'app di allenamento solo Bluetooth come Grimpa: la scheda Pedala e la configurazione ora propongono l'overlay del rapporto. L'app gira su un altro dispositivo, quindi puoi usare il telefono per altro e vedere comunque il tuo rapporto in sovrimpressione.
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser e SaddleOut sono ora supportati ufficialmente tramite OpenBikeControl.
+- (Base) iPhone / Android: i Controlli del Trainer (i grandi pulsanti sullo schermo) ora si possono bloccare in orizzontale, anche con il blocco della rotazione di sistema attivo. Utile quando il telefono entra nel supporto solo di lato, ad es. con il cavo di ricarica collegato.
 
 **Fixes**:
 - (Base) Android: «Chiudi» nella notifica di BikeControl ora rimuove anche l'overlay del rapporto. Prima l'overlay restava sullo schermo dopo la chiusura di BikeControl.

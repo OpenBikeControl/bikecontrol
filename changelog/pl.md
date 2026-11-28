@@ -3,6 +3,7 @@
 - (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: gdy BikeControl działa na urządzeniu z Androidem lub komputerze z Windows, pojawia się w aplikacji Wahoo jako trenażer smart Bluetooth i sam zajmuje się wirtualną zmianą biegów.
 - (Pro) Android z aplikacją treningową tylko przez Bluetooth, np. Grimpa: zakładka Jazda i konfiguracja proponują teraz nakładkę z biegiem. Aplikacja działa na innym urządzeniu, więc możesz używać telefonu do czegokolwiek i nadal widzieć swój bieg na wierzchu.
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser i SaddleOut są teraz oficjalnie obsługiwane przez OpenBikeControl.
+- (Base) iPhone / Android: Sterowanie trenażerem (duże przyciski na ekranie) można teraz zablokować w poziomie, nawet przy włączonej systemowej blokadzie obrotu. Przydatne, gdy telefon mieści się w uchwycie tylko bokiem, np. z podłączonym kablem ładowania.
 
 **Fixes**:
 - (Base) Android: „Zamknij” w powiadomieniu BikeControl usuwa teraz także nakładkę z biegiem. Wcześniej nakładka zostawała na ekranie po zamknięciu BikeControl.

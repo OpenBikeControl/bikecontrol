@@ -3200,6 +3200,8 @@
   "companionResetLayoutBody": "Zurück zum Fahrmodus mit allen Tasten. Deine Änderungen für diese Ausrichtung gehen verloren.",
   "companionFullScreen": "Vollbild",
   "companionExitFullScreen": "Vollbild beenden",
+  "companionLockLandscape": "Im Querformat fixieren",
+  "companionUnlockLandscape": "Hochformat wieder erlauben",
   "companionEditHint": "Zieh eine Kachel, um sie zu verschieben, und ihre Ecke, um die Größe zu ändern.",
   "companionAddButtons": "Tasten",
   "companionAddRideData": "Fahrdaten",

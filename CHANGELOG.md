@@ -3,6 +3,7 @@
 - (Pro) The Wahoo app is now selectable as a trainer app: run BikeControl on an Android device or a Windows PC, and it shows up in the Wahoo app as a Bluetooth smart trainer and does the virtual shifting.
 - (Pro) Android with a Bluetooth-only trainer app like Grimpa: the Ride tab and setup now offer the gear overlay. The app runs on another device, so you can use your phone for anything else and still see your gear on top.
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser and SaddleOut are now officially supported via OpenBikeControl.
+- (Base) iPhone / Android: Trainer Controls (the big on-screen buttons) can now be locked to landscape, even with the system rotation lock on. Handy when your phone only fits sideways on its mount, e.g. with the charging cable plugged in.
 
 **Fixes**:
 - (Base) Android: "Close" in BikeControl's notification now also removes the gear overlay. Before, the overlay stayed on screen after BikeControl had quit.

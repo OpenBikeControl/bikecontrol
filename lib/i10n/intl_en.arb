@@ -3752,6 +3752,8 @@
   "companionResetLayoutBody": "Back to ride mode with every button. Your changes for this orientation are lost.",
   "companionFullScreen": "Full screen",
   "companionExitFullScreen": "Exit full screen",
+  "companionLockLandscape": "Lock to landscape",
+  "companionUnlockLandscape": "Allow portrait again",
   "companionEditHint": "Drag a tile to move it, drag its corner to resize it.",
   "companionAddButtons": "Buttons",
   "companionAddRideData": "Ride data",

@@ -2,6 +2,7 @@
 Nuevo: la app de Wahoo como app de entrenamiento (Pro)
 Nuevo: overlay de marchas con apps solo Bluetooth como Grimpa (Pro)
 Nuevo: nueve apps más vía OpenBikeControl, como PedalCraft, Sueur y SaddleOut
+Nuevo: fijar los Controles de entrenamiento en horizontal
 Corregido:
 • «Cerrar» en la notificación quita el overlay
 • Asignaciones propias tras reiniciar
