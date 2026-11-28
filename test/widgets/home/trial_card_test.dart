@@ -86,6 +86,18 @@ void main() async {
     expect(find.text(l.chainTrialAfterTrial(40)), findsNothing);
   });
 
+  // The Windows Store trial has no daily cap: commandsRemainingToday is -1
+  // there. The card showed that raw as "-1 / 40".
+  testWidgets('an uncapped trial shows no presses meter instead of -1', (tester) async {
+    await pumpTrial(tester, trial(commandsRemaining: -1, commandsTotal: 40, commandsAfterTrial: 40));
+
+    expect(find.text(l.chainTrialCommandsMeter), findsNothing);
+    expect(find.text('-1'), findsNothing);
+    expect(find.text('/ 40'), findsNothing);
+    expect(find.text(l.chainTrialDaysMeter), findsOneWidget);
+    expect(find.text(l.chainTrialAfterTrial(40)), findsOneWidget);
+  });
+
   testWidgets('running low on presses turns the card amber', (tester) async {
     expect(trial(commandsRemaining: 10, commandsTotal: 120).urgent, isTrue);
     expect(trial(commandsRemaining: 62, commandsTotal: 120).urgent, isFalse);
