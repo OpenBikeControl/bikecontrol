@@ -8,6 +8,7 @@ import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
@@ -113,6 +114,11 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   Future<void> setupHandshake() async {
     await sendCommandBuffer(Uint8List.fromList(startCommand));
     ClickLogic.setupHandshake(services!, device.deviceId, isRight: true);
+    try {
+      repairRightSideShiftingKeymap();
+    } catch (e, stack) {
+      recordError(e, stack, context: 'ZwiftClickV2RightSide.repairRightSideShiftingKeymap');
+    }
   }
 
   @override
@@ -179,6 +185,10 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   static void configureRightSideShiftingKeymap() {
     final app = core.actionHandler.supportedApp;
     if (app == null) return;
+    // The fork below keeps only the buttons of connected controllers, so with
+    // just this puck connected it holds no shift-down binding to copy from —
+    // remember the built-in template it came from.
+    final template = app is CustomApp ? _templateOf(app) : app;
 
     if (app is! CustomApp) {
       KeymapManager().duplicateSync(app.name, '${app.name} (Copy)');
@@ -192,9 +202,7 @@ class ZwiftClickV2RightSide extends ZwiftRide {
 
     final shiftDown = keymap.getOrCreateKeyPair(ZwiftButtons.b, trigger: ButtonTrigger.singleClick);
     shiftDown.inGameAction = InGameAction.shiftDown;
-    shiftDown.physicalKey = null;
-    shiftDown.logicalKey = null;
-    shiftDown.modifiers = [];
+    _copyShiftDownFallback([keymap, ?template?.keymap], into: shiftDown);
 
     keymap.signalUpdate();
 
@@ -202,5 +210,51 @@ class ZwiftClickV2RightSide extends ZwiftRide {
     if (activeApp != null) {
       core.settings.setKeyMap(activeApp);
     }
+  }
+
+  /// Fixes keymaps saved by the earlier remap, which cleared B's key outright.
+  /// That left B a trainer-app-only action, so a rider whose only route to the
+  /// trainer app is the Local (keyboard) method got "… is not connected" on
+  /// every down-shift while ＋ kept working. Runs when the right side connects.
+  static void repairRightSideShiftingKeymap() {
+    if (!core.settings.getClickV2RightSideOnly()) return;
+    final app = core.actionHandler.supportedApp;
+    if (app == null) return;
+    final b = app.keymap.getKeyPair(ZwiftButtons.b, trigger: ButtonTrigger.singleClick);
+    if (b == null || b.inGameAction != InGameAction.shiftDown || !b.isTrainerAppActionOnly) return;
+    final template = app is CustomApp ? _templateOf(app) : null;
+    if (!_copyShiftDownFallback([app.keymap, ?template?.keymap], into: b)) return;
+    app.keymap.signalUpdate();
+    core.settings.setKeyMap(app);
+  }
+
+  /// The built-in app a custom profile was forked from, e.g. MyWhoosh for
+  /// "MyWhoosh (Copy)".
+  static SupportedApp? _templateOf(CustomApp app) {
+    final origin = core.settings.getCustomKeymapOrigin(app.name);
+    if (origin == null) return null;
+    return SupportedApp.supportedApps.where((a) => a is! CustomApp && a.name == origin).firstOrNull;
+  }
+
+  /// Gives B the keyboard/touch binding the app already uses for shifting
+  /// down (MyWhoosh: I), so the press still lands when the trainer app is only
+  /// reached via the Local method. B's own old binding (e.g. Escape) is
+  /// dropped either way. [keymaps] are searched in order. Returns whether a
+  /// binding was found.
+  static bool _copyShiftDownFallback(List<Keymap> keymaps, {required KeyPair into}) {
+    final source = keymaps
+        .expand((k) => k.keyPairs)
+        .where(
+          (k) =>
+              !identical(k, into) &&
+              k.inGameAction == InGameAction.shiftDown &&
+              (k.physicalKey != null || k.logicalKey != null || k.touchPosition != Offset.zero),
+        )
+        .firstOrNull;
+    into.physicalKey = source?.physicalKey;
+    into.logicalKey = source?.logicalKey;
+    into.modifiers = source == null ? [] : List.of(source.modifiers);
+    if (source != null) into.touchPosition = source.touchPosition;
+    return source != null;
   }
 }
