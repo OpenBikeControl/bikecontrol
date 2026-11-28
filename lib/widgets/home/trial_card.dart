@@ -36,6 +36,10 @@ class TrialCardState {
   /// surprise mid-ride. Null hides the line.
   final int? commandsAfterTrial;
 
+  /// -1 means no daily cap (the Windows Store trial): there is no budget to
+  /// draw, and "-1 / 40" would only confuse.
+  bool get showsCommandsMeter => commandsRemaining >= 0 && commandsTotal > 0;
+
   bool get showsBridgeMeter => bridgeMinutesRemaining != null && (bridgeMinutesTotal ?? 0) > 0;
 
   bool get _bridgeLow => showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
@@ -129,21 +133,22 @@ class TrialCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Commands are capped during the trial too — RevenueCatService
-                // enforces the daily limit whatever the trial state, it just
-                // raises the ceiling to 80 while the trial runs and drops it
-                // afterwards. So the meter is always honest, and always shown.
+                // Commands are capped during the RevenueCat trial too — it
+                // raises the ceiling while the trial runs and drops it
+                // afterwards. The Windows Store trial has no cap (-1), so the
+                // presses meter is hidden there.
                 if (!state.expired) ...[
                   BudgetMeter(label: l.chainTrialDaysMeter, value: state.daysRemaining, total: state.daysTotal),
-                  const Gap(11),
+                  if (state.showsCommandsMeter || state.showsBridgeMeter) const Gap(11),
                 ],
-                BudgetMeter(
-                  label: l.chainTrialCommandsMeter,
-                  value: state.commandsRemaining,
-                  total: state.commandsTotal,
-                ),
+                if (state.showsCommandsMeter)
+                  BudgetMeter(
+                    label: l.chainTrialCommandsMeter,
+                    value: state.commandsRemaining,
+                    total: state.commandsTotal,
+                  ),
                 if (state.showsBridgeMeter) ...[
-                  const Gap(11),
+                  if (state.showsCommandsMeter) const Gap(11),
                   BudgetMeter(
                     label: l.chainTrialBridgeMeter,
                     value: state.bridgeMinutesRemaining!,
